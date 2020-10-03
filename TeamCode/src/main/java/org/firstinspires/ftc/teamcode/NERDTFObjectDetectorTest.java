@@ -72,13 +72,12 @@ public class NERDTFObjectDetectorTest extends LinearOpMode {
         nerdtfObjectDetectorRings = new NERDTFObjectDetectorRings(this, "UltimateGoalCustom.tflite", "FourRings", "OneRing", 154, 400, 5);
 //        nerdtfObjectDetectorRings.initialize();
         nerdtfObjectDetectorRings.initVuforia();
-        nerdtfObjectDetector = new NERDTFObjectDetector(this, "RedWobbleCustom.tflite", "RedWobble", "", 0, 0, 8);
+        nerdtfObjectDetector = new NERDTFObjectDetector(this, "RedWobbleCustom.tflite", "RedWobble", 0, 8);
 //        nerdtfObjectDetector.initialize();
 //        nerdtfObjectDetector.initTfod();
         waitForStart();
         nerdtfObjectDetectorRings.initTfod();
         ringCase = nerdtfObjectDetectorRings.identifyRingCase();
-
         telemetry.addData("Output:", ringCase);
         telemetry.update();
 

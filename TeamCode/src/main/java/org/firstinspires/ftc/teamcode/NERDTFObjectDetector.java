@@ -87,14 +87,9 @@ public class NERDTFObjectDetector {
         this.LABEL_SECOND_ELEMENT_LENGTH = LABEL_SECOND_ELEMENT_LENGTH;
         this.KNOWN_WIDTH_OF_OBJECT = KNOWN_WIDTH_OF_OBJECT_IN_INCHES;
     }
-//    public NERDTFObjectDetector(LinearOpMode opmode, String TFOD_MODEL_ASSET, String LABEL_FIRST_ELEMENT, double LABEL_FIRST_ELEMENT_LENGTH,  double KNOWN_WIDTH_OF_OBJECT_IN_INCHES) {
-//        this.opmode = opmode;
-//        this.hardwareMap = opmode.hardwareMap;
-//        this.TFOD_MODEL_ASSET = TFOD_MODEL_ASSET;
-//        this.LABEL_FIRST_ELEMENT = LABEL_FIRST_ELEMENT;
-//        this.LABEL_FIRST_ELEMENT_LENGTH = LABEL_FIRST_ELEMENT_LENGTH;
-//        this.KNOWN_WIDTH_OF_OBJECT = KNOWN_WIDTH_OF_OBJECT_IN_INCHES;
-//    }
+    public NERDTFObjectDetector(LinearOpMode opmode, String TFOD_MODEL_ASSET, String LABEL_FIRST_ELEMENT, double LABEL_FIRST_ELEMENT_LENGTH,  double KNOWN_WIDTH_OF_OBJECT_IN_INCHES) {
+        this(opmode, TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, "", LABEL_FIRST_ELEMENT_LENGTH, 0, 8);
+    }
 
 
 
