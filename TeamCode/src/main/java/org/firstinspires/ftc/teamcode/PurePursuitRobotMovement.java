@@ -21,6 +21,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import opencv.core.Point;
 import treamcode.CurvePoint;
 import treamcode.MathFunctions;
+import treamcode.NerdPIDCalc_MotionProfiling_Clean;
+import treamcode.NerdHardwareWorld;
 
 import java.util.ArrayList;
 
@@ -49,6 +51,9 @@ public class PurePursuitRobotMovement {
     Acceleration gravity;
 
     Orientation lastAngles = new Orientation();
+
+    private NerdPIDCalc_MotionProfiling_Clean Motion_PID;
+
 
     private double robotAngleToField = 0;
     private double robotAngleToTarget = 0;
@@ -117,6 +122,8 @@ public class PurePursuitRobotMovement {
     double rearLeftMotorPower = 0;
     double rearRightMotorPower = 0;
 
+    NerdHardwareWorld HWorld;
+
     /**
      * Constructor to create NerdBOT object
      * <p>
@@ -129,6 +136,7 @@ public class PurePursuitRobotMovement {
     public PurePursuitRobotMovement(LinearOpMode opmode) {
         this.opmode = opmode;
         this.hardwareMap = opmode.hardwareMap;
+        this.Motion_PID = new NerdPIDCalc_MotionProfiling_Clean(opmode);
     }
 
     //Function to initialize hardware components.
@@ -140,34 +148,13 @@ public class PurePursuitRobotMovement {
 
     public void initializeHardware(){
 
-        //Initialize Motors
+        HWorld = new NerdHardwareWorld();
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-
-        this.frontLeftMotor = this.hardwareMap.get(DcMotor.class, "Front_Left_Motor");
-        this.frontRightMotor = this.hardwareMap.get(DcMotor.class, "Front_Right_Motor");
-        this.rearLeftMotor = this.hardwareMap.get(DcMotor.class, "Rear_Left_Motor");
-        this.rearRightMotor = this.hardwareMap.get(DcMotor.class, "Rear_Right_Motor");
-
-        // Set up the parameters with which we will use our IMU. Note that integration
-        // algorithm here just reports accelerations to the logcat log; it doesn't actually
-        // provide positional information.
-
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-        parameters.loggingEnabled = true;
-        parameters.loggingTag = "IMU";
-        parameters.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
-
-        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
-        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
-
-        this.imu = this.hardwareMap.get(BNO055IMU.class, "imu");
-        this.imu.initialize(parameters);
-        this.imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
+        this.imu = HWorld.imu;
+        this.frontLeftMotor = HWorld.FLM;
+        this.frontRightMotor = HWorld.FRM;
+        this.rearLeftMotor = HWorld.RLM;
+        this.rearRightMotor = HWorld.RRM;
 
         resetAngle();
 
@@ -283,10 +270,12 @@ public class PurePursuitRobotMovement {
             frontRightMotorPower = yPower + zPower;
             rearLeftMotorPower = -yPower + zPower;
 
-            rearRightMotor.setPower(rearRightMotorPower);
-            frontLeftMotor.setPower(frontLeftMotorPower);
-            frontRightMotor.setPower(frontRightMotorPower);
-            rearLeftMotor.setPower(rearLeftMotorPower);
+//            rearRightMotor.setPower(rearRightMotorPower);
+//            frontLeftMotor.setPower(frontLeftMotorPower);
+//            frontRightMotor.setPower(frontRightMotorPower);
+//            rearLeftMotor.setPower(rearLeftMotorPower);
+
+            Motion_PID.runMotors(frontLeftMotorPower, frontRightMotorPower, rearLeftMotorPower, rearRightMotorPower, 0.75, 0.75);
 
 
 

@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import treamcode.CurvePoint;
+import treamcode.NerdPIDCalc_MotionProfiling_Clean;
 
 import java.util.ArrayList;
 
@@ -15,10 +16,14 @@ public class PurePursuitOpMode extends LinearOpMode {
 
     private PurePursuitRobotMovement myPurePursuitRobotMovement ;
 
+    private NerdPIDCalc_MotionProfiling_Clean VPID;
+
     boolean debugFlag = true;
 
     @Override
     public void runOpMode() {
+        VPID = new NerdPIDCalc_MotionProfiling_Clean(this);
+
         //Create a NerdBOT object
         myPurePursuitRobotMovement = new PurePursuitRobotMovement(this);
 
@@ -27,6 +32,20 @@ public class PurePursuitOpMode extends LinearOpMode {
         //Initialize Hardware
         myPurePursuitRobotMovement.initializeHardware();
         //Initialize the PID Calculators
+        double aP = 0.012; //0.009;, 0.025; 2.005
+        double aI = 0.0022; //0.12;, 0.08
+        double aD = 0.0;
+
+        VPID.setFLGains(aP, aI, aD);
+        VPID.setFRGains(aP, aI, aD);
+        VPID.setRLGains(aP, aI, aD);
+        VPID.setRRGains(aP, aI, aD);//.00732
+        VPID.setGyroGains(0.5,     0.5, 0);//0.015
+
+        VPID.initializeHardware();
+
+        sleep(700);
+
 
         telemetry.addData("Init", "Completed");
         telemetry.update();
