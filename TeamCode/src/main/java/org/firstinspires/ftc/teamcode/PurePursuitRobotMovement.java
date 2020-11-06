@@ -21,6 +21,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
 import opencv.core.Point;
 import treamcode.CurvePoint;
 import treamcode.MathFunctions;
+import treamcode.NerdVelocityFollowing;
 
 import java.util.ArrayList;
 
@@ -87,6 +88,7 @@ public class PurePursuitRobotMovement {
     double omniDriveAngle = 0;
     double omniDriveFactor = 0;
 
+
     double robotFieldPositionX = 0;
     double robotFieldPositionY = 0;
     double robotFieldAngle = 0;
@@ -104,6 +106,7 @@ public class PurePursuitRobotMovement {
     double loopTime = 0;
     double currentTime = 0;
 
+
     double xPower = 0;
     double yPower = 0;
     double zPower = 0;
@@ -116,6 +119,17 @@ public class PurePursuitRobotMovement {
     double frontRightMotorPower = 0;
     double rearLeftMotorPower = 0;
     double rearRightMotorPower = 0;
+
+    //for Jusnoor's code
+    double prevTickTime = 0;
+    int prevLeft = 0, prevRight = 0, prevLeftB = 0, prevRightB = 0;
+    private final double wheelDiameter = 3.54331; // For omni wheels we are using
+    private final double wheelMountAngle = 45.0; //For current drivetrain
+    private final double GEAR_RATIO = 20.0 / 15.0;  // Gear ratio
+    private final double ticksPerRotation = 540.0; //For omni wheels we are using
+    public double [] Velocities = new double[5];
+    double maxVelocity = 0.0;
+    double maxAcceleration = 0.0;
 
     /**
      * Constructor to create NerdBOT object
@@ -283,10 +297,28 @@ public class PurePursuitRobotMovement {
             frontRightMotorPower = yPower + zPower;
             rearLeftMotorPower = -yPower + zPower;
 
-            rearRightMotor.setPower(rearRightMotorPower);
-            frontLeftMotor.setPower(frontLeftMotorPower);
-            frontRightMotor.setPower(frontRightMotorPower);
-            rearLeftMotor.setPower(rearLeftMotorPower);
+            double frontLeftMotorTarget = powerToSpeed(frontLeftMotorPower);
+            double rearRightMotorTarget = powerToSpeed(rearRightMotorPower);
+            double frontRightMotorTarget = powerToSpeed(frontRightMotorPower);
+            double rearLeftMotorTarget = powerToSpeed(rearLeftMotorPower);
+
+            getVelocityForCurrentLoop();
+
+            double frontLeftMotorSpeed = Velocities[0];
+            double rearRightMotorSpeed = Velocities[3];
+            double frontRightMotorSpeed = Velocities[1];
+            double rearLeftMotorSpeed = Velocities[2];
+            double deltaTime = Velocities[4];
+
+            double [] motorSpeedCommand = NerdVelocityFollowing.velocityFollowing(frontLeftMotorTarget, rearRightMotorTarget,
+                    frontRightMotorTarget, rearLeftMotorTarget, frontLeftMotorSpeed, rearRightMotorSpeed, frontRightMotorSpeed,
+                    rearLeftMotorSpeed, deltaTime);
+
+
+            frontLeftMotor.setPower(motorSpeedCommand[0]);
+            rearRightMotor.setPower(motorSpeedCommand[3]);
+            frontRightMotor.setPower(motorSpeedCommand[1]);
+            rearLeftMotor.setPower(motorSpeedCommand[2]);
 
 
 
@@ -297,8 +329,8 @@ public class PurePursuitRobotMovement {
 //            }
 
             if (debugFlag) {
-                RobotLog.d("FieldCentricInAutonTurn3Odo1 - timeSinceStart %f, robotTargetAngle %f, lfDisplacementNew %f, lfDispNoRot %f, rrDisplacementNew %f, rrDispNoRot %f, rfDisplacementNew %f, rfDispNoRot %f, lrDisplacementNew %f, lrDispNoRot %f, xPosition %f, yPosition %f, robotRot %f, robotRotDisplacement %f, robotAngleToTarget %f, robotVectorByOdo %f, robotVectorMag %f, robotFieldAngle %f, robotFieldPositionX %f, robotFieldPositionY %f, robotXdisplacement %f, robotYdisplacement %f, omniDriveAngle %f, omniDriveFactor %f",
-                        deltaTime, robotTargetAngle, lfDisplacementNew, lfDispNoRot, rrDisplacementNew, rrDispNoRot, rfDisplacementNew, rfDispNoRot, lrDisplacementNew, lrDispNoRot, xPosition, yPosition, robotRot, robotRotDisplacement, robotAngleToTarget, robotVectorByOdo, robotVectorMag, robotFieldAngle, robotFieldPositionX, robotFieldPositionY, robotXdisplacement, robotYdisplacement, omniDriveAngle, omniDriveFactor);
+                RobotLog.d("NerdVelocityFollowing - deltaTime %f, frontLeftMotorTarget %f, frontLeftMotorSpeed %f, frontRightMotorTarget %f, frontRightMotorSpeed %f, rearLeftMotorTarget %f, rearLeftMotorSpeed %f, rearRightMotorTarget %f, rearRightMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorPower %f, rearLeftMotorPower %f, rearRightMotorPower %f",
+                        deltaTime, frontLeftMotorTarget, frontLeftMotorSpeed, frontRightMotorTarget, frontRightMotorSpeed, rearLeftMotorTarget, rearLeftMotorSpeed, rearRightMotorTarget, rearRightMotorSpeed, motorSpeedCommand [0], motorSpeedCommand [1], motorSpeedCommand [2], motorSpeedCommand [3]);
             }
 
 
@@ -380,6 +412,65 @@ public class PurePursuitRobotMovement {
 
         double [] displacement = {xPosition, yPosition, robotVectorByOdo};
         return displacement;
+
+    }
+
+    public double [] getVelocityForCurrentLoop() {
+        int leftCurrent = frontLeftMotor.getCurrentPosition();
+        int rightCurrent = frontRightMotor.getCurrentPosition();
+        int leftBCurrent = rearLeftMotor.getCurrentPosition();
+        int rightBCurrent = rearRightMotor.getCurrentPosition();
+
+        double tTime = elapsedTime.seconds();
+        double deltaTickTime = tTime - prevTickTime;
+        prevTickTime = tTime;
+
+        double leftInches = ticksToInches((int) (leftCurrent - prevLeft), wheelDiameter, wheelMountAngle);
+        double rightInches = ticksToInches((int) (rightCurrent - prevRight), wheelDiameter, wheelMountAngle);
+        double leftBInches = ticksToInches((int) (leftBCurrent - prevLeftB), wheelDiameter, wheelMountAngle);
+        double rightBInches = ticksToInches((int) (rightBCurrent - prevRightB), wheelDiameter, wheelMountAngle);
+        double frontLeftVelocity = leftInches / deltaTickTime;
+        double frontRightVelocity = rightInches / deltaTickTime;
+        double rearLeftVelocity = leftBInches / deltaTickTime;
+        double rearRightVelocity = rightBInches / deltaTickTime;
+        double avgVelocity = (frontLeftVelocity + frontRightVelocity + rearLeftVelocity + rearRightVelocity) / 4;
+        double currentAcceleration = avgVelocity / deltaTickTime;
+        if (currentAcceleration > maxAcceleration) {
+            maxAcceleration = currentAcceleration;
+        }
+        if (avgVelocity > maxVelocity) {
+            maxVelocity = avgVelocity;
+        }
+        int leftDeltaTicks = leftCurrent - prevLeft;
+        int rightDeltaTicks = rightCurrent - prevRight;
+        int leftBDeltaTicks = leftBCurrent - prevLeftB;
+        int rightBDeltaTicks = rightBCurrent - prevRightB;
+        double avgDeltaTicks = (leftDeltaTicks + rightDeltaTicks + leftBDeltaTicks + rightBDeltaTicks) / 4;
+        prevLeft = leftCurrent;
+        prevRight = rightCurrent;
+        prevLeftB = leftBCurrent;
+        prevRightB = rightBCurrent;
+        Velocities[0] = frontLeftVelocity;
+        Velocities[1] = frontRightVelocity;
+        Velocities[2] = rearLeftVelocity;
+        Velocities[3] = rearRightVelocity;
+        Velocities[4] = deltaTickTime; // added delta time to be used in PID
+
+        return Velocities;
+    }
+
+    public double ticksToInches(int ticks, double wheelDiameter, double wheelMountAngle) {
+        double circum = wheelDiameter * Math.PI;
+        double numberofWheelRotations = (double) ticks / ticksPerRotation;
+        double wheelDistanceToTravel = numberofWheelRotations * circum;
+//        double straightDistanceToTravel = wheelDistanceToTravel; // (Math.cos(Math.toRadians(wheelMountAngle)) * GEAR_RATIO);
+        return wheelDistanceToTravel;
+    }
+
+    private double powerToSpeed (double motorPower){
+        double wheelSpeedRPS = motorPower * 6000 / 60 / 19.2; //convert motor power to wheel rotations per second, 6000 rpm max motor speed, 60 seconds in a minute.
+        double wheelSpeedIPS = wheelSpeedRPS * wheelDiameter * Math.PI; //
+        return wheelSpeedIPS;
 
     }
 

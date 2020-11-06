@@ -33,7 +33,7 @@ public class PurePursuitOpMode extends LinearOpMode {
 
         waitForStart();
 
- //       myPurePursuitRobotMovement.goToPosition(0, 60, 0.3, 90, 0.0);
+        myPurePursuitRobotMovement.goToPosition(0, 60, 0.6, 90, 0.0);
 //        myPurePursuitRobotMovement.goToPosition(-90,45, 0.8, 135, 0.2);
 //        myPurePursuitRobotMovement.goToPosition(0,0,0.8,135,0.2);
 
@@ -57,17 +57,17 @@ public class PurePursuitOpMode extends LinearOpMode {
 //        myPurePursuitRobotMovement.goToPosition(45, 90, 0.8, 135, 0.2);
 //        myPurePursuitRobotMovement.goToPosition(0, 120, 0.8, 90, 0.2);
 //        myPurePursuitRobotMovement.goToPosition(45, 150, 0.8, 135, 0.2);
-        //myPurePursuitRobotMovement.goToPosition(0, 0, 0.5,0, 0.2);
+//        myPurePursuitRobotMovement.goToPosition(0, 0, 0.5,0, 0.2);
 
-        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(0, 0, 0.8, 0.2, 40, 0, 0.3));
-        allPoints.add(new CurvePoint(45, 30, 0.8, 0.2, 40, 135, 0.3));
-        allPoints.add(new CurvePoint(0, 60, 0.8, 0.2, 40, 135, 0.3));
-        allPoints.add(new CurvePoint(45, 90, 0.8, 0.2, 40, 135, 0.3));
-        allPoints.add(new CurvePoint(0, 120, 0.8, 0.2, 40, 135, 0.3));
-        allPoints.add(new CurvePoint(45, 150, 0.8, 0.2, 40, 135, 0.3));
-
-        myPurePursuitRobotMovement.followCurve(allPoints, 90);
+//        ArrayList<CurvePoint> allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(0, 0, 0.8, 0.2, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(45, 30, 0.8, 0.2, 40, 135, 0.3));
+//        allPoints.add(new CurvePoint(0, 60, 0.8, 0.2, 40, 135, 0.3));
+//        allPoints.add(new CurvePoint(45, 90, 0.8, 0.2, 40, 135, 0.3));
+//        allPoints.add(new CurvePoint(0, 120, 0.8, 0.2, 40, 135, 0.3));
+//        allPoints.add(new CurvePoint(45, 150, 0.8, 0.2, 40, 135, 0.3));
+//
+//        myPurePursuitRobotMovement.followCurve(allPoints, 90);
 
 //        ArrayList<CurvePoint> allPoints = new ArrayList<>();
 //        allPoints.add(new CurvePoint(0, 0, 0.8, 0.2, 25, 0, 0.3));
