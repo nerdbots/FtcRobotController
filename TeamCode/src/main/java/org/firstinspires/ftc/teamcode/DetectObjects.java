@@ -23,8 +23,10 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -42,12 +44,15 @@ public class DetectObjects extends LinearOpMode
     //OpenCvInternalCamera phoneCam;
     OpenCvCamera phoneCam;
     SkystoneDeterminationPipeline pipeline;
+    private DistanceSensor sensorRange;
+
 
     @Override
     public void runOpMode()
     {
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        sensorRange = hardwareMap.get(DistanceSensor.class, "sensor_range");
         //phoneCam = OpenCvCameraFactory.getInstance().createInternalCamera(OpenCvInternalCamera.CameraDirection.BACK, cameraMonitorViewId);
         phoneCam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
         pipeline = new SkystoneDeterminationPipeline();
@@ -72,11 +77,12 @@ public class DetectObjects extends LinearOpMode
         while (opModeIsActive())
         {
             telemetry.addData("Ring Analysis", pipeline.getAnalysis_ring());
-            telemetry.addData("Ring Position", pipeline.position_ring);
-            telemetry.addData("Wobble Analysis", pipeline.getAnalysis_wobble());
-            telemetry.addData("Wobble Position", pipeline.wobble_position);
-            telemetry.addData("Powershot Analysis",pipeline.getAnalysis_power());
-            telemetry.addData("Powershot Position",pipeline.position_power);
+            telemetry.addData("Number of Rings : ", pipeline.position_ring);
+            //telemetry.addData("Wobble Analysis", pipeline.getAnalysis_wobble());
+            telemetry.addData("Wobble : ", pipeline.wobble_position);
+            //telemetry.addData("Powershot Analysis",pipeline.getAnalysis_power());
+            telemetry.addData("Powershot : ",pipeline.position_power);
+            telemetry.addData("Distance of Object detected (inch) : ", String.format("%.01f in", sensorRange.getDistance(DistanceUnit.INCH)));
 
 
             telemetry.update();
@@ -100,6 +106,8 @@ public class DetectObjects extends LinearOpMode
         public enum RingPosition
         {
             FOUR,
+            THREE,
+            TWO,
             ONE,
             NONE
         }
@@ -114,13 +122,15 @@ public class DetectObjects extends LinearOpMode
         /*
          * The core values which define the location and size of the sample regions
          */
-        static final Point REGION_RING_TOPLEFT_ANCHOR_POINT = new Point(181,176);
+        static final Point REGION_RING_TOPLEFT_ANCHOR_POINT = new Point(220,195);
 
         static final int REGION_WIDTH_RING = 35;
-        static final int REGION_HEIGHT_RING = 25;
+        static final int REGION_HEIGHT_RING = 35;
 
-        final int FOUR_RING_THRESHOLD = 150;
-        final int ONE_RING_THRESHOLD = 125;
+        final int FOUR_RING_THRESHOLD = 135;
+        final int THREE_RING_THRESHOLD = 140;
+        final int TWO_RING_THRESHOLD = 130;
+        final int ONE_RING_THRESHOLD = 110;
 
         Point region_ring_pointA = new Point(
                 REGION_RING_TOPLEFT_ANCHOR_POINT.x,
@@ -177,6 +187,7 @@ public class DetectObjects extends LinearOpMode
         public enum WobblePosition
         {
             RED,
+            BLUE,
             NONE
         }
         /*
@@ -231,6 +242,16 @@ public class DetectObjects extends LinearOpMode
             Imgproc.cvtColor(input, YCrCb_wobble, Imgproc.COLOR_RGB2YCrCb);
             Core.extractChannel(YCrCb_wobble, Cb_wobble, 1);
         }
+        Mat region_BlueWobble_Cb;
+        Mat YCrCb_BlueWobble = new Mat();
+        Mat Cb_BlueWobble = new Mat();
+        int avg_BlueWobble;
+
+        void inputToCb_BlueWobble(Mat input)
+        {
+            Imgproc.cvtColor(input, YCrCb_BlueWobble, Imgproc.COLOR_BGR2YCrCb);
+            Core.extractChannel(YCrCb_BlueWobble, Cb_BlueWobble, 1);
+        }
 
         @Override
         public void init(Mat firstFrame)
@@ -242,6 +263,10 @@ public class DetectObjects extends LinearOpMode
             inputToCb_WOBBLE(firstFrame);
 
             region_wobble_Cb = Cb_wobble.submat(new Rect(region_wobble_pointA, region_wobble_pointB));
+
+            inputToCb_BlueWobble(firstFrame);
+
+            region_BlueWobble_Cb = Cb_BlueWobble.submat(new Rect(region_wobble_pointA, region_wobble_pointB));
 
             inputToCb_Power(firstFrame);
 
@@ -263,9 +288,18 @@ public class DetectObjects extends LinearOpMode
                     2); // Thickness of the rectangle lines
 
             position_ring = RingPosition.FOUR; // Record our analysis
-            if(avg_ring > FOUR_RING_THRESHOLD){
+            if(avg_ring > FOUR_RING_THRESHOLD) {
                 position_ring = RingPosition.FOUR;
-            }else if (avg_ring > ONE_RING_THRESHOLD){
+            }
+            /*
+            else if ((avg_ring > THREE_RING_THRESHOLD) && (avg_ring <= FOUR_RING_THRESHOLD)){
+                position_ring = RingPosition.THREE;
+            }
+            else if ((avg_ring > TWO_RING_THRESHOLD) && (avg_ring <= THREE_RING_THRESHOLD)){
+                    position_ring = RingPosition.TWO;
+            }
+            */
+            else if ((avg_ring > ONE_RING_THRESHOLD)){
                 position_ring = RingPosition.ONE;
             }else{
                 position_ring = RingPosition.NONE;
@@ -282,8 +316,10 @@ public class DetectObjects extends LinearOpMode
 
 
             inputToCb_WOBBLE(input);
-
             avg_wobble = (int) Core.mean(region_wobble_Cb).val[0];
+
+            inputToCb_BlueWobble(input);
+            avg_BlueWobble = (int) Core.mean(region_BlueWobble_Cb).val[0];
 
             Imgproc.rectangle(
                     input, // Buffer to draw on
@@ -293,8 +329,10 @@ public class DetectObjects extends LinearOpMode
                     2); // Thickness of the rectangle lines
 
             wobble_position = DetectObjects.SkystoneDeterminationPipeline.WobblePosition.RED; // Record our analysis
-            if(avg_wobble > RED_WOBBLE_THRESHOLD){
+            if(avg_wobble > RED_WOBBLE_THRESHOLD) {
                 wobble_position = DetectObjects.SkystoneDeterminationPipeline.WobblePosition.RED;
+            }else if(avg_BlueWobble > BLUE_WOBBLE_THRESHOLD){
+                wobble_position = DetectObjects.SkystoneDeterminationPipeline.WobblePosition.BLUE;
             }else{
                 wobble_position = DetectObjects.SkystoneDeterminationPipeline.WobblePosition.NONE;
             }
