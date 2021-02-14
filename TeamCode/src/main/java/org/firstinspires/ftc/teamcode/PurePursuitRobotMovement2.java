@@ -26,7 +26,7 @@ import treamcode.NerdVelocityFollowing;
 
 import java.util.ArrayList;
 
-public class PurePursuitRobotMovement {
+public class PurePursuitRobotMovement2 {
 
     private boolean debugFlag=false;
 
@@ -40,6 +40,11 @@ public class PurePursuitRobotMovement {
     private DcMotor frontRightMotor;
     private DcMotor rearLeftMotor;
     private DcMotor rearRightMotor;
+
+    private DcMotor frontEncoder;
+    private DcMotor rightEncoder;
+    private DcMotor leftEncoder;
+    private DcMotor backEncoder;
 
     private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime elapsedTime = new ElapsedTime();
@@ -61,6 +66,33 @@ public class PurePursuitRobotMovement {
     private double yPosition = 0;
     private double displacementX = 0;
     private double displacementY = 0;
+
+    double xPositionOpt = 0;
+    double yPositionOpt = 0;
+
+
+    private double xPositionOptical = 0;
+    private double yPositionOptical = 0;
+    private double displacementXOptical = 0;
+    private double displacementYOptical = 0;
+
+    double frontDispNoRotTotOpt = 0;
+    double leftDispNoRotTotOpt = 0;
+    double rightDispNoRotTotOpt = 0;
+    double rearDispNoRotTotOpt = 0;
+
+    double frontPositionOptical = 0;
+    double rightPositionOptical = 0;
+    double leftPositionOptical = 0;
+    double backPositionOptical = 0;
+    double [] robotPositionXYOptical;
+
+    double omniDriveFactorOpt = 0;
+
+    double frontDisplacementOld = 0;
+    double leftDisplacementOld = 0;
+    double rightDisplacementOld = 0;
+    double rearDisplacementOld = 0;
 
     double robotRot = 0;
     double robotRotNew = 0;
@@ -90,6 +122,17 @@ public class PurePursuitRobotMovement {
     double robotVectorMag = 0;
     double omniDriveAngle = 0;
     double omniDriveFactor = 0;
+
+
+    double robotRotNewOpt = 0;
+    double robotRotOldOpt = 0;
+    double robotRotOpt = 0;
+    //double robotRotDisplacementOptF = 0;
+    double robotXdisplacementOpt = 0;
+    double robotYdisplacementOpt = 0;
+    double robotVectorByOdoOpt = 0;
+    double robotVectorMagOpt = 0;
+    double robotFieldAngleOpt = 0;
 
 
     double robotFieldPositionX = 0;
@@ -143,7 +186,7 @@ public class PurePursuitRobotMovement {
      *               NerdBOT takes an opmode object so that it can get the hardwareMap.     *
      */
 
-    public PurePursuitRobotMovement(LinearOpMode opmode) {
+    public PurePursuitRobotMovement2(LinearOpMode opmode) {
         this.opmode = opmode;
         this.hardwareMap = opmode.hardwareMap;
     }
@@ -165,6 +208,11 @@ public class PurePursuitRobotMovement {
         this.frontRightMotor = this.hardwareMap.get(DcMotor.class, "Front_Right_Motor");
         this.rearLeftMotor = this.hardwareMap.get(DcMotor.class, "Rear_Left_Motor");
         this.rearRightMotor = this.hardwareMap.get(DcMotor.class, "Rear_Right_Motor");
+
+        this.frontEncoder = this.hardwareMap.get(DcMotor.class, "Front");
+        this.rightEncoder = this.hardwareMap.get(DcMotor.class, "Right");
+        this.leftEncoder = this.hardwareMap.get(DcMotor.class, "Left");
+        this.backEncoder = this.hardwareMap.get(DcMotor.class, "Back");
 
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -190,6 +238,27 @@ public class PurePursuitRobotMovement {
 
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
+        this.frontEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.rightEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.leftEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.backEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        this.frontEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.rightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.leftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.backEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        this.frontEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.rightEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.leftEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        this.backEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        xPosition = 0;
+        yPosition = 0;
+
+        displacementX = 0;
+        displacementY = 0;
+
         this.frontLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.frontRightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.rearLeftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -205,13 +274,14 @@ public class PurePursuitRobotMovement {
         this.rearLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.rearRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        xPosition = 0;
-        yPosition = 0;
+        xPositionOptical = 0;
+        yPositionOptical = 0;
 
-        displacementX = 0;
-        displacementY = 0;
+        xPositionOpt = 0;
+        yPositionOpt = 0;
 
-
+        displacementXOptical = 0;
+        displacementYOptical = 0;
 
     }
 
@@ -258,6 +328,8 @@ public class PurePursuitRobotMovement {
 //            deltaTime = currentTime - startTime;
 
             robotPositionXY = findDisplacement(xPosition, yPosition, robotVectorByOdo);
+
+            robotPositionXYOptical = findDisplacementOptical();
 
             distanceToTarget = Math.hypot(x - robotPositionXY[0], y - robotPositionXY[1]);
 
@@ -335,12 +407,18 @@ public class PurePursuitRobotMovement {
 //                        deltaTime, robotTargetAngle, xPower, yPower, zPower, frontLeftMotorPower, rearRightMotorPower, frontRightMotorPower, rearLeftMotorPower, lfDisplacement, rrDisplacement, rfDisplacement, lrDisplacement, xPosition, yPosition, robotRot, robotRotDisplacement, robotAngleToTarget, robotVectorByOdoF, robotVectorByOdoR, frontVectorMag, rearVectorMag);
 //            }
 
+            // channels to record for velocity following
+//            if (debugFlag) {
+//                RobotLog.d("NerdVelocityFollowing - deltaTime %f, frontLeftMotorTarget %f, frontLeftMotorSpeed %f, frontRightMotorTarget %f, frontRightMotorSpeed %f, rearLeftMotorTarget %f, rearLeftMotorSpeed %f, rearRightMotorTarget %f, rearRightMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorPower %f, rearLeftMotorPower %f, rearRightMotorPower %f, robotTargetAngle %f, robotAngleToTarget %f, zPIDAngle %f, relativeTurnAngle %f, xPosition %f, yPosition %f, frontOpticalEncoder %f, rightOpticalEncoder %f, leftOpticalEncoder %f, backOpticalEncoder %f, xPositionOpt %f, yPositionOpt %f, omniDriveFactorOpt %f",
+//                        deltaTime, frontLeftMotorTarget, frontLeftMotorSpeed, frontRightMotorTarget, frontRightMotorSpeed, rearLeftMotorTarget, rearLeftMotorSpeed, rearRightMotorTarget, rearRightMotorSpeed, motorSpeedCommand [0], motorSpeedCommand [1], motorSpeedCommand [2], motorSpeedCommand [3], robotTargetAngle, robotAngleToTarget, zPIDAngle, relativeTurnAngle, robotPositionXY[0], robotPositionXY[1], robotPositionXYOptical[0], robotPositionXYOptical [1], robotPositionXYOptical [2], robotPositionXYOptical[3], robotPositionXYOptical[4], robotPositionXYOptical[5], omniDriveFactorOpt);
+//            }
+
+            // channels to record to debug optical encoder field centric driving
             if (debugFlag) {
-                RobotLog.d("NerdVelocityFollowing - deltaTime %f, frontLeftMotorTarget %f, frontLeftMotorSpeed %f, frontRightMotorTarget %f, frontRightMotorSpeed %f, rearLeftMotorTarget %f, rearLeftMotorSpeed %f, rearRightMotorTarget %f, rearRightMotorSpeed %f, frontLeftMotorPower %f, frontRightMotorPower %f, rearLeftMotorPower %f, rearRightMotorPower %f, robotTargetAngle %f, robotAngleToTarget %f, zPIDAngle %f, relativeTurnAngle %f, xPosition %f, yPosition %f",
-                        deltaTime, frontLeftMotorTarget, frontLeftMotorSpeed, frontRightMotorTarget, frontRightMotorSpeed, rearLeftMotorTarget, rearLeftMotorSpeed, rearRightMotorTarget, rearRightMotorSpeed, motorSpeedCommand [0], motorSpeedCommand [1], motorSpeedCommand [2], motorSpeedCommand [3], robotTargetAngle, robotAngleToTarget, zPIDAngle, relativeTurnAngle, robotPositionXY[0], robotPositionXY[1]);
+                RobotLog.d("NerdRobotPositionOptical - deltaTime %f, frontDispNoRotTotOpt %f, rightDispNoRotTotOpt %f, leftDispNoRotTotOpt %f, rearDispNoRotTotOpt %f, robotXdisplacementOpt %f, robotYdisplacementOpt %f, robotVectorByOdoOpt %f, robotVectorMagOpt %f, robotFieldAngleOpt %f, xPositionOpt %f, yPositionOpt %f",
+                        deltaTime, frontDispNoRotTotOpt, rightDispNoRotTotOpt, leftDispNoRotTotOpt, rearDispNoRotTotOpt, robotXdisplacementOpt, robotYdisplacementOpt, robotVectorByOdoOpt, robotVectorMagOpt, robotFieldAngleOpt, xPositionOpt, yPositionOpt);
+
             }
-
-
 
 
         }
@@ -419,6 +497,79 @@ public class PurePursuitRobotMovement {
 
         double [] displacement = {xPosition, yPosition, robotVectorByOdo};
         return displacement;
+
+    }
+
+    private double [] findDisplacementOptical(){
+
+        robotRotNewOpt = getAngle();
+        robotRotOpt = robotRotNewOpt - robotRotOldOpt;
+        robotRotOldOpt = robotRotNewOpt;
+
+        //robot rotation expressed in motor ticks (robot angle, ticks per rev, robot diameter, degrees per rev, wheel diameter
+        double robotRotDisplacementOptFront = robotRotOpt * 22.567; //22.567 ticks per degree of robot rotation
+        double robotRotDisplacementOptRight = robotRotOpt * 22.465; //each wheel is mounted slightly different on the bot
+        double robotRotDisplacementOptLeft = robotRotOpt * 22.121;
+        double robotRotDisplacementOptBack = robotRotOpt * 22.319;
+
+        frontPositionOptical = frontEncoder.getCurrentPosition();
+        rightPositionOptical = rightEncoder.getCurrentPosition();
+        leftPositionOptical = leftEncoder.getCurrentPosition();
+        backPositionOptical = backEncoder.getCurrentPosition();
+
+        double frontDisplacement = frontPositionOptical - frontDisplacementOld;
+        double leftDisplacement = leftPositionOptical - leftDisplacementOld;
+        double rightDisplacement = rightPositionOptical - rightDisplacementOld;
+        double rearDisplacement = backPositionOptical - rearDisplacementOld;
+
+        frontDisplacementOld = frontPositionOptical;
+        leftDisplacementOld = leftPositionOptical;
+        rightDisplacementOld = rightPositionOptical;
+        rearDisplacementOld = backPositionOptical;
+
+        double frontDispNoRot = frontDisplacement - robotRotDisplacementOptFront;
+        double leftDispNoRot = leftDisplacement - robotRotDisplacementOptRight;
+        double rightDispNoRot = rightDisplacement - robotRotDisplacementOptLeft;
+        double rearDispNoRot = rearDisplacement - robotRotDisplacementOptBack;
+
+        frontDispNoRotTotOpt += frontDispNoRot;
+        leftDispNoRotTotOpt += leftDispNoRot;
+        rightDispNoRotTotOpt += rightDispNoRot;
+        rearDispNoRotTotOpt += rearDispNoRot;
+
+//        omniDriveAngle = robotAngleToTarget + 45;
+
+        if (Math.abs(Math.cos(robotAngleToTarget * Math.PI / 180)) > 0.707) {
+            omniDriveFactorOpt = Math.abs(Math.cos(robotAngleToTarget * Math.PI / 180));
+        }
+        else if (Math.abs(Math.sin(robotAngleToTarget * Math.PI / 180)) > 0.707) {
+            omniDriveFactorOpt = Math.abs(Math.sin(robotAngleToTarget * Math.PI / 180));
+        }
+        else {
+            omniDriveFactorOpt = 1.0;
+        }
+
+        //calculate X displacement, and convert ticks to inches (3.543 = wheel diameter inches, 1440 = ticks per wheel rot), and account for robot angle
+        robotXdisplacementOpt = ((rightDispNoRotTotOpt + leftDispNoRotTotOpt - frontDispNoRotTotOpt - rearDispNoRotTotOpt) / 4) * ((2.362 * Math.PI) / 1440) / omniDriveFactorOpt;
+        //calculate Y displacement, and convert ticks to inches (3.543 = wheel diameter inches, 1440 = ticks per wheel rot), and account for robot angle
+        robotYdisplacementOpt = ((rightDispNoRotTotOpt - frontDispNoRotTotOpt + rearDispNoRotTotOpt - leftDispNoRotTotOpt) / 4) * ((2.362 * Math.PI) / 1440) / omniDriveFactorOpt;
+
+        robotVectorByOdoOpt = Math.atan2(robotYdisplacementOpt, robotXdisplacementOpt) * 180 / Math.PI;
+
+        robotVectorMagOpt = Math.sqrt((robotXdisplacementOpt * robotXdisplacementOpt) + (robotYdisplacementOpt * robotYdisplacementOpt));
+
+        robotFieldAngleOpt = (robotVectorByOdoOpt + getAngle());
+
+        double robotFieldPositionXOpt = robotVectorMagOpt * Math.cos(robotFieldAngleOpt * Math.PI / 180);  //field position in inches
+        double robotFieldPositionYOpt = robotVectorMagOpt * Math.sin(robotFieldAngleOpt * Math.PI / 180);  //field position in inches
+
+        xPositionOpt += robotFieldPositionXOpt;
+        yPositionOpt += robotFieldPositionYOpt;
+
+
+        double [] positionOptical = {frontPositionOptical, rightPositionOptical, leftPositionOptical, backPositionOptical, xPositionOpt, yPositionOpt};
+        return positionOptical;
+
 
     }
 

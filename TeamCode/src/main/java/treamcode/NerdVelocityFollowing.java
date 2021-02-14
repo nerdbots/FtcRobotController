@@ -14,14 +14,14 @@ public class NerdVelocityFollowing {
     public static int LWM = 1;
     public static int RWM = 1;
 
-    public static double accelRate = 0.1;
+    public static double accelRate = 0.025;
     public static double KV = 1;
 
     public static double DBanMax = 1;
     public static double DBanMin = -1;
 
     public static double kP = 0.1;
-    public static double kI = 0;
+    public static double kI = 0.025;
     public static double kD = 0;
 
     public static double FLError = 0;

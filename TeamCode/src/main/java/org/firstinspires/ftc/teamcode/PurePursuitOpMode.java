@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import treamcode.CurvePoint;
+import treamcode.NerdPID_PurePursuit;
 
 import java.util.ArrayList;
 
@@ -13,19 +14,19 @@ import java.util.ArrayList;
 
 public class PurePursuitOpMode extends LinearOpMode {
 
-    private PurePursuitRobotMovement myPurePursuitRobotMovement ;
+    private PurePursuitRobotMovement6 myPurePursuitRobotMovement6 ;
 
     boolean debugFlag = true;
 
     @Override
     public void runOpMode() {
         //Create a NerdBOT object
-        myPurePursuitRobotMovement = new PurePursuitRobotMovement(this);
+        myPurePursuitRobotMovement6 = new PurePursuitRobotMovement6(this);
 
-        myPurePursuitRobotMovement.setDebug(debugFlag);
+        myPurePursuitRobotMovement6.setDebug(debugFlag);
 
         //Initialize Hardware
-        myPurePursuitRobotMovement.initializeHardware();
+        myPurePursuitRobotMovement6.initializeHardware();
         //Initialize the PID Calculators
 
         telemetry.addData("Init", "Completed");
@@ -33,60 +34,210 @@ public class PurePursuitOpMode extends LinearOpMode {
 
         waitForStart();
 
-        myPurePursuitRobotMovement.goToPosition(0, 60, 0.6, 90, 0.0);
-//        myPurePursuitRobotMovement.goToPosition(-90,45, 0.8, 135, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(0,0,0.8,135,0.2);
-
-//        myPurePursuitRobotMovement.goToPosition(40, 80, 0.5, 90, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(-40, 80, 0.5, 0, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(-40, 140, 0.5, 0, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(45, 140, 0.5, 0, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(45, 45, 0.5, 0, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(0, 0, 0.5,0, 0.2);
+//        myPurePursuitRobotMovement6.goToPosition(0, 100, 1.0, 90, 0.3, 30);
+//        myPurePursuitRobotMovement5.goToPosition(0,0, 1.0, 270, 0.2);
 
 //        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-//        allPoints.add(new CurvePoint(0, 0, 0.8, 0.2, 25, 0, 0.3));
-//        allPoints.add(new CurvePoint(30, 45, 0.8, 0.2, 25, 135, 0.3));
-//        allPoints.add(new CurvePoint(0, 90, 0.8, 0.2, 25, 135, 0.3));
-//        allPoints.add(new CurvePoint(30, 135, 0.8, 0.2, 25, 135, 0.3));
+//        allPoints.add(new CurvePoint(0, 0, 0.6, 0.2, 25, 0, 0.3));
+//        allPoints.add(new CurvePoint(24, 45, 0.6, 0.2, 25, 135, 0.3));
+//        allPoints.add(new CurvePoint(-45, 45, 0.6, 0.2, 25, 180, 0.3));
+//        allPoints.add(new CurvePoint(-60, 0, 0.6, 0.2, 25, 225, 0.3));
+//        allPoints.add(new CurvePoint(-60, -50, 0.6, 0.2, 25, 225, 0.3));
 //
-//        myPurePursuitRobotMovement.followCurve(allPoints, 90);
+//        myPurePursuitRobotMovement5.followCurve(allPoints, 90);
 
-//        myPurePursuitRobotMovement.goToPosition(45, 30, 0.8, 135, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(0, 60, 0.8, 90, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(45, 90, 0.8, 135, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(0, 120, 0.8, 90, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(45, 150, 0.8, 135, 0.2);
-//        myPurePursuitRobotMovement.goToPosition(0, 0, 0.5,0, 0.2);
+//                ArrayList<CurvePoint> allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(0, 100, 1.0, 0.3, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(0, 150, 1.0, 0.3, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 40, 90, 3);
 
+//        //First Path to the Square 4
 //        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-//        allPoints.add(new CurvePoint(0, 0, 0.8, 0.2, 40, 0, 0.3));
-//        allPoints.add(new CurvePoint(45, 30, 0.8, 0.2, 40, 135, 0.3));
-//        allPoints.add(new CurvePoint(0, 60, 0.8, 0.2, 40, 135, 0.3));
-//        allPoints.add(new CurvePoint(45, 90, 0.8, 0.2, 40, 135, 0.3));
-//        allPoints.add(new CurvePoint(0, 120, 0.8, 0.2, 40, 135, 0.3));
-//        allPoints.add(new CurvePoint(45, 150, 0.8, 0.2, 40, 135, 0.3));
+//        allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(-8, 40, 1.0, 0.3, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(-12, 118, 1.0, 0.3, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(-12, 171, 1.0, 0.3, 40, 180, 0.3));
 //
-//        myPurePursuitRobotMovement.followCurve(allPoints, 90);
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 40, 90, 3);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(-12, 121, 1.0, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(22, 100, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(18, 28, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(20, -44, 1.0, 0.3, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 40, 225, 1);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(24, 14, 1.0, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(24, 60, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(-12, 110, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(-16, 160, 1.0, 0.3, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(-8, 110, 1.0, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(5, 60, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 10, 1.0, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 2);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 48, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 0, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(6, 48, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 110, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 3);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 48, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 0, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(6, 48, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 110, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 3);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 70, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 130, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 7, 90, 4);
 
-//        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-//        allPoints.add(new CurvePoint(0, 0, 0.8, 0.2, 25, 0, 0.3));
-//        allPoints.add(new CurvePoint(45, 45, 0.8, 0.2, 25, 135, 0.3));
-//        allPoints.add(new CurvePoint(45, 60, 0.8, 0.2, 25, 135, 0.3));
-//        allPoints.add(new CurvePoint(0 , 80, 0.8, 0.2, 25, 135, 0.3));
-//        allPoints.add(new CurvePoint(-45, 80, 0.8, 0.2, 25, 135, 0.3));
-//
-//        myPurePursuitRobotMovement.followCurve(allPoints, 90);
 
+
+
+
+        //Second Path to the Square 1
+        ArrayList<CurvePoint> allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(-15, 40, 1.0, 0.3, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(6, 94, 1.0, 0.3, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(27, 148, 1.0, 0.3, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+
+//        sleep(1000);
+
+        allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(6, 94, 1.0, 0.4, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(18, 60, 1.0, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(18, 28, 1.0, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(20, -44, 1.0, 0.3, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 33, 225, 1);
+
+//        sleep(1000);
+
+        allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(18, 28, 1.0, 0.4, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(18, 60, 1.0, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(12, 86, 1.0, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(0, 140, 1.0, 0.3, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 3);
+
+//        sleep(1000);
+
+
+        allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(12, 86, 0.6, 0.4, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(5, 60, 0.6, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(4, 10, 0.6, 0.4, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
+
+//        sleep(1000);
+
+        allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(6, 48, 0.6, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(6, 0, 0.6, 0.4, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
+
+        allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(6, 48, 0.6, 0.4, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(6, 110, 0.6, 0.4, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 3);
+
+        allPoints = new ArrayList<>();
+        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 0, 0.3));
+        allPoints.add(new CurvePoint(6, 70, 0.6, 0.4, 40, 180, 0.3));
+        allPoints.add(new CurvePoint(6, 130, 0.6, 0.4, 40, 180, 0.3));
+
+        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 7, 90, 4);
+
+
+
+//        //Third Path to the Square 0
 //        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-//        allPoints.add(new CurvePoint(0, 0, 0.5, 0.2, 25, 0, 0.0));
-//        allPoints.add(new CurvePoint(45, 45, 0.5, 0.2, 25, 0, 0.0));
-//        allPoints.add(new CurvePoint(-90, 45, 0.5, 0.2, 25, 0, 0.0));
-//        allPoints.add(new CurvePoint(-90, 0, 0.5, 0.2, 25, 0, 0.3));
-//        allPoints.add(new CurvePoint(-90, -25, 0.5, 0.2, 25, 0, 0.3));
-//        //allPoints.add(new CurvePoint(-45, -25, 0.5, 0.2, 25, 135, 0.3));
+//        allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(-16, 70, 1.0, 0.3, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(-24, 140, 1.0, 0.3, 40, 180, 0.3));
 //
-//        myPurePursuitRobotMovement.followCurve(allPoints, 90);
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(-16, 70, 1.0, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(18, 50, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(18, 28, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(18, -44, 1.0, 0.3, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 225, 1);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(18, 28, 1.0, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(-12, 65, 1.0, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(0, 140, 1.0, 0.3, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+//
+////        sleep(1000);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(-12, 60, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(75, 60, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
+//
+//        allPoints = new ArrayList<>();
+//        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 40, 0, 0.3));
+//        allPoints.add(new CurvePoint(6, 70, 0.6, 0.4, 40, 180, 0.3));
+//        allPoints.add(new CurvePoint(6, 130, 0.6, 0.4, 40, 180, 0.3));
+//
+//        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 7, 90, 4);
 
 
     }
