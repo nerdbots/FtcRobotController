@@ -5,6 +5,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
@@ -23,6 +24,7 @@ import treamcode.CurvePoint;
 import treamcode.MathFunctions;
 import treamcode.NerdPID_PurePursuit;
 import treamcode.NerdVelocityFollowing;
+import treamcode.wobble_Pickup;
 
 import java.util.ArrayList;
 
@@ -45,6 +47,9 @@ public class PurePursuitRobotMovement6 {
     private DcMotor rightEncoder;
     private DcMotor leftEncoder;
     private DcMotor backEncoder;
+
+//    private DcMotor wobbleMotor;
+//    Servo wobbleServo;
 
     private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime elapsedTime = new ElapsedTime();
@@ -162,7 +167,7 @@ public class PurePursuitRobotMovement6 {
     double xPower = 0;
     double yPower = 0;
     double zPower = 0;
-    double zPowerStart = -0.30;
+    double zPowerStart = -0.20;
     double zPowerIncrease = 0.075;
 
     boolean useZPID = false;
@@ -307,6 +312,11 @@ public class PurePursuitRobotMovement6 {
         displacementYOptical = 0;
 
         prevDistanceToTarget = 20;
+
+        //Initializes motors (obvi)
+//        this.wobbleMotor = hardwareMap.get(DcMotor.class, "Left");
+//        this.wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
+
 
     }
 
@@ -875,10 +885,10 @@ public class PurePursuitRobotMovement6 {
 
         double relativeTurnAngle = MathFunctions.AngleWrapDeg(robotTargetAngle - (getAngle() + 90));
 
-        if (Math.abs(parkAngleTarget - (getAngle() + 90)) > 45){
+        if (Math.abs(parkAngleTarget - (getAngle() + 90)) > 90){
             useZPID = false;
         }
-        else if (Math.abs(parkAngleTarget - (getAngle() + 90)) < 35){
+        else if (Math.abs(parkAngleTarget - (getAngle() + 90)) < 80){
             useZPID = true;
         }
 

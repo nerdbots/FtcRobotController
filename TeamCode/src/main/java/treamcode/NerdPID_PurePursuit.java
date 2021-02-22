@@ -79,7 +79,7 @@ public class NerdPID_PurePursuit {
 
     public static double zPowerDrive (double targetAngleDrive, double gyroAngleDrive, double deltaTimePIDDrive){
 
-        double kPD = 0.010; //0.010
+        double kPD = 0.005; //0.010
         double kID = 0.003; //0.005
         double kDD = 0.000; //0.000
 
