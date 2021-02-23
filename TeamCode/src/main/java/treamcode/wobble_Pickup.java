@@ -30,11 +30,13 @@ public class wobble_Pickup {
     public void beginningDown() {
         Timer.reset();
         while(Timer.seconds() < 0.35) {
-            wobbleMotor.setPower(-0.55);
+            wobbleMotor.setPower(0.55);
         }
         wobbleMotor.setPower(0);
 
         wobbleServo.setPosition(0);
+
+        opmode.sleep(500);
 
     }
 
@@ -42,11 +44,11 @@ public class wobble_Pickup {
     public void pickupWobble() {
         wobbleServo.setPosition(1);
 
-//        opmode.sleep(500);
+        opmode.sleep(500);
 
         Timer.reset();
-        while(Timer.seconds() < 0.53) {
-            wobbleMotor.setPower(0.9);
+        while(Timer.seconds() < 0.75) {
+            wobbleMotor.setPower(-0.9);
         }
         wobbleMotor.setPower(0);
 
@@ -54,12 +56,12 @@ public class wobble_Pickup {
     //Lowers motor, then releases wobble goal
     public void setDownWobble() {
         Timer.reset();
-        while(Timer.seconds() < 0.17) {
-            wobbleMotor.setPower(-0.55);
+        while(Timer.seconds() < 0.35) {
+            wobbleMotor.setPower(0.55);
         }
 
         wobbleMotor.setPower(0);
-//        opmode.sleep(500);
+        opmode.sleep(500);
         wobbleServo.setPosition(0);
     }
 

@@ -141,9 +141,9 @@ public class NerdPID_PurePursuit {
     }
 
     public static double movementSpeedPID (double robotDistanceToTarget, double prevRobotDistanceToTarget, double deltaTimePIDMS){
-        double kPMS = 0.033;
+        double kPMS = 0.030;
         double kIMS = 0.200;
-        double kDMS = 0.017;
+        double kDMS = 0.018;
 
         //calculate error (Proportional)
         propErrorMS = robotDistanceToTarget;
