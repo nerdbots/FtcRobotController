@@ -48,6 +48,21 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 @TeleOp(name="Teleop", group="Final")
 public class TeleOp_1 extends LinearOpMode {
 
+    static final double INCREMENT   = 0.01;     // amount to slew servo each CYCLE_MS cycle
+    static final int    CYCLE_MS    =   50;     // period of each cycle
+    static final double MAX_POS     =  1.0;     // Maximum rotational position
+    static final double MIN_POS     =  0.0;     // Minimum rotational position
+
+    // Define class members
+    Servo   shooter_Servo;
+    DcMotor shooter_Motor;
+    double  position = 0; // Start at halfway position
+    boolean rampUp = true;
+    boolean cycle = true;
+    int count = 0;
+
+
+
 
     private DcMotor wobbleMotor;
     Servo wobbleServo;
@@ -109,16 +124,14 @@ public class TeleOp_1 extends LinearOpMode {
         wobbleMotor = hardwareMap.get(DcMotor.class, "Left");
         wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
 
+        shooter_Servo = hardwareMap.get(Servo.class, "servo");
+        shooter_Motor = hardwareMap.get(DcMotor.class, "motor");
 
-        //  globalAngle = 0;/imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
-
-
-//        expansion_Hub_1 = hardwareMap.get(Blinker.class, "Expansion Hub 2");
-
+        shooter_Motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
 
-
+        int count = 0;
 
 
 
@@ -210,6 +223,10 @@ public class TeleOp_1 extends LinearOpMode {
         Timer.reset();
 
 
+        // Starting Pos for servo
+        shooter_Servo.setPosition(0.3);
+
+
 
         if(opModeIsActive()) {
             Timer.reset();
@@ -219,6 +236,9 @@ public class TeleOp_1 extends LinearOpMode {
             wobbleMotor.setPower(0);
 
             wobbleServo.setPosition(0);
+
+            shooter_Motor.setPower(-1);
+
         }
 
         // run until the end of the match (driver presses STOP)
@@ -226,7 +246,7 @@ public class TeleOp_1 extends LinearOpMode {
 
                 isShooterMode = gamepad1.left_bumper;
 
-                if (gamepad1.left_stick_x != 0 || gamepad1.left_stick_y != 0 ) {
+                if (gamepad1.left_stick_x != 0 || gamepad1.left_stick_y != 0  && !isShooterMode) {
                     joyX = gamepad1.left_stick_x;
                     joyY = gamepad1.left_stick_y;
                 }
@@ -350,7 +370,13 @@ public class TeleOp_1 extends LinearOpMode {
 
             }
 
+            if(gamepad1.right_bumper) {
+                shooter_Servo.setPosition(0);
+                sleep(500);
+                shooter_Servo.setPosition(0.3);
+                sleep(500);
 
+            }
 
 
                 //add telemetry

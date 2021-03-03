@@ -85,7 +85,7 @@ public class Shooter extends LinearOpMode {
 
         int count = 0;
         //Set count higher based on how many times you want the indexer to move back and forth
-        while(opModeIsActive() && count < 5){
+        while(opModeIsActive() && count < 6){
             //Setting the speed of the shooter wheel
             motor.setPower(-1);
 
