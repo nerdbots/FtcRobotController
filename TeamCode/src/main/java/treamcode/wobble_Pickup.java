@@ -44,7 +44,7 @@ public class wobble_Pickup {
     public void pickupWobble() {
         wobbleServo.setPosition(1);
 
-        opmode.sleep(500);
+        opmode.sleep(1000);
 
         Timer.reset();
         while(Timer.seconds() < 0.75) {
