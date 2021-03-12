@@ -337,7 +337,7 @@ public class NerdPIDCalc_MotionProfiling_Clean {
         error = TVeloc - CurrVeloc;
         //Calculate Total error (Integral)
         TotalError = (error * PIDTime.seconds()) + TotalError;
-          PIDTime.reset();
+        PIDTime.reset();
         //do deadban
         if (DBanMax > error && error > DBanMin) {
             error = 0;
@@ -511,60 +511,60 @@ public class NerdPIDCalc_MotionProfiling_Clean {
 
 
 
-                opmode.telemetry.addData("stage", ACDStage);
+            opmode.telemetry.addData("stage", ACDStage);
 
-                opmode.telemetry.addLine("run started");
-
-
-                opmode.telemetry.addLine("runtime reset");
+            opmode.telemetry.addLine("run started");
 
 
-                getVelocityForCurrentLoop();
+            opmode.telemetry.addLine("runtime reset");
 
 
-                runtime.reset();
-                opmode.telemetry.addLine("Velocity gotten");
+            getVelocityForCurrentLoop();
 
 
-                FLInVeloc = Velocities[0];
-                FRInVeloc = Velocities[1];
-                RLInVeloc = Velocities[2];
-                RRInVeloc = Velocities[3];
-
-                PIDVeloc(FLrunningAverage(FLInVeloc), LWM * rampFL(KV, accelRate, FLinTar, FLInVeloc), "FL");
-                PIDVeloc(FRrunningAverage(FRInVeloc), RWM * rampFR(KV, accelRate, FRinTar, FRInVeloc), "FR");
-                PIDVeloc(RLrunningAverage(RLInVeloc), LWM * rampRL(KV, accelRate, RLinTar, RLInVeloc), "RL");
-                PIDVeloc(RRrunningAverage(RRInVeloc), RWM * rampRR(KV, accelRate, RRinTar, RRInVeloc), "RR");
+            runtime.reset();
+            opmode.telemetry.addLine("Velocity gotten");
 
 
+            FLInVeloc = Velocities[0];
+            FRInVeloc = Velocities[1];
+            RLInVeloc = Velocities[2];
+            RRInVeloc = Velocities[3];
 
-                opmode.telemetry.addLine("PID done");
-                //  opmode.telemetry.update();
-                //      opmode.sleep(1000);
-
-                leftMotor.setPower(FLVeloc-gyroVeloc);
-                rightMotor.setPower(FRVeloc+gyroVeloc);
-                leftMotorB.setPower(RLVeloc-gyroVeloc);
-                rightMotorB.setPower(RRVeloc+gyroVeloc);
-
-                opmode.telemetry.addData("FLPower", FLVeloc);
-                opmode.telemetry.addData("FRPower", FRVeloc);
-                opmode.telemetry.addData("RLPower", RLVeloc);
-                opmode.telemetry.addData("RRPower", RRVeloc);
-
-                opmode.telemetry.addLine("power set");
-
-                opmode.telemetry.addLine("looptime gotten");
+            PIDVeloc(FLrunningAverage(FLInVeloc), LWM * rampFL(KV, accelRate, FLinTar, FLInVeloc), "FL");
+            PIDVeloc(FRrunningAverage(FRInVeloc), RWM * rampFR(KV, accelRate, FRinTar, FRInVeloc), "FR");
+            PIDVeloc(RLrunningAverage(RLInVeloc), LWM * rampRL(KV, accelRate, RLinTar, RLInVeloc), "RL");
+            PIDVeloc(RRrunningAverage(RRInVeloc), RWM * rampRR(KV, accelRate, RRinTar, RRInVeloc), "RR");
 
 
-                // opmode.telemetry.addData("Motor speeeeeedd", FLVeloc);
-                opmode.telemetry.addData("VelocityFL", Velocities[0]);
-                opmode.telemetry.addData("VelocityFR", Velocities[1]);
-                opmode.telemetry.addData("VelocityRL", Velocities[2]);
-                opmode.telemetry.addData("VelocityRR", Velocities[3]);
-                opmode.telemetry.addData("Average motor POWAAAH", ((leftMotor.getPower() + leftMotorB.getPower() + rightMotor.getPower() +
-                        rightMotorB.getPower()) / 4));
-                opmode.telemetry.update();
+
+            opmode.telemetry.addLine("PID done");
+            //  opmode.telemetry.update();
+            //      opmode.sleep(1000);
+
+            leftMotor.setPower(FLVeloc-gyroVeloc);
+            rightMotor.setPower(FRVeloc+gyroVeloc);
+            leftMotorB.setPower(RLVeloc-gyroVeloc);
+            rightMotorB.setPower(RRVeloc+gyroVeloc);
+
+            opmode.telemetry.addData("FLPower", FLVeloc);
+            opmode.telemetry.addData("FRPower", FRVeloc);
+            opmode.telemetry.addData("RLPower", RLVeloc);
+            opmode.telemetry.addData("RRPower", RRVeloc);
+
+            opmode.telemetry.addLine("power set");
+
+            opmode.telemetry.addLine("looptime gotten");
+
+
+            // opmode.telemetry.addData("Motor speeeeeedd", FLVeloc);
+            opmode.telemetry.addData("VelocityFL", Velocities[0]);
+            opmode.telemetry.addData("VelocityFR", Velocities[1]);
+            opmode.telemetry.addData("VelocityRL", Velocities[2]);
+            opmode.telemetry.addData("VelocityRR", Velocities[3]);
+            opmode.telemetry.addData("Average motor POWAAAH", ((leftMotor.getPower() + leftMotorB.getPower() + rightMotor.getPower() +
+                    rightMotorB.getPower()) / 4));
+            opmode.telemetry.update();
 
 
 

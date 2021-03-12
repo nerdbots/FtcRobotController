@@ -15,7 +15,7 @@ public class wobble_Pickup {
 
     private ElapsedTime Timer = new ElapsedTime();
 
-    public void wobble_Pickup(LinearOpMode opmode) {
+    public wobble_Pickup(LinearOpMode opmode) {
         this.opmode = opmode;
         this.hardwareMap = opmode.hardwareMap;
     }
@@ -26,41 +26,55 @@ public class wobble_Pickup {
         this.wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
     }
 
-    //Puts the wobble arm down from it's original position. Used at the start of the match.
+//    Puts the wobble arm down from it's original position. Used at the start of the match.
     public void beginningDown() {
-            Timer.reset();
-            while(Timer.seconds() < 0.25) {
-                this.wobbleMotor.setPower(-0.55);
-            }
-            this.wobbleMotor.setPower(0);
+        Timer.reset();
+        while(Timer.seconds() < 0.35) {
+            wobbleMotor.setPower(0.55);
+        }
+        wobbleMotor.setPower(0);
 
-            this.wobbleServo.setPosition(0);
+        wobbleServo.setPosition(0);
+
+        opmode.sleep(500);
 
     }
 
     //Closes servo, then picks up wobble goal
     public void pickupWobble() {
-        this.wobbleServo.setPosition(1);
+        wobbleServo.setPosition(0.75);
 
-        opmode.sleep(500);
+        opmode.sleep(1000);
 
         Timer.reset();
-        while(Timer.seconds() < 0.53) {
-            this.wobbleMotor.setPower(0.9);
+        while(Timer.seconds() < 0.75) {
+            wobbleMotor.setPower(-0.9);
         }
-        this.wobbleMotor.setPower(0);
+        wobbleMotor.setPower(0.1);
 
     }
     //Lowers motor, then releases wobble goal
     public void setDownWobble() {
         Timer.reset();
-        while(Timer.seconds() < 0.17) {
-            wobbleMotor.setPower(-0.55);
+        while(Timer.seconds() < 0.35) {
+            wobbleMotor.setPower(0.55);
         }
 
         wobbleMotor.setPower(0);
         opmode.sleep(500);
         wobbleServo.setPosition(0);
+    }
+
+    public void upWobble() {
+        wobbleServo.setPosition(0.75);
+
+        opmode.sleep(1000);
+
+        Timer.reset();
+        while(Timer.seconds() < 0.75) {
+            wobbleMotor.setPower(-0.9);
+        }
+        wobbleMotor.setPower(0.0);
     }
 
 
