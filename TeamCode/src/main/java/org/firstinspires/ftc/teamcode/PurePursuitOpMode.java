@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import treamcode.CurvePoint;
+import treamcode.DetectObjects_Shoot_Class;
 import treamcode.NerdPID_PurePursuit;
 import treamcode.wobble_Pickup;
 
@@ -17,28 +18,33 @@ public class PurePursuitOpMode extends LinearOpMode {
 
     private PurePursuitRobotMovement6 myPurePursuitRobotMovement6;
     private wobble_Pickup mywobble_Pickup;
+    private DetectObjects_Shoot_Class myDetectObjects;
 
     boolean debugFlag = true;
 
-    double purePursuitPath = 0;
+    double purePursuitPath;
 
     @Override
     public void runOpMode() {
         //Create a NerdBOT object
         myPurePursuitRobotMovement6 = new PurePursuitRobotMovement6(this);
         mywobble_Pickup = new wobble_Pickup (this);
+        myDetectObjects = new DetectObjects_Shoot_Class(this);
 
         myPurePursuitRobotMovement6.setDebug(debugFlag);
 
         //Initialize Hardware
         myPurePursuitRobotMovement6.initializeHardware();
         mywobble_Pickup.wobbleInit();
+        myDetectObjects.initialize();
         //Initialize the PID Calculators
 
         telemetry.addData("Init", "Completed");
         telemetry.update();
 
         waitForStart();
+
+        myDetectObjects.runDetectShoot();
 
         if (purePursuitPath == 4) {
             //First Path to the Square 4
