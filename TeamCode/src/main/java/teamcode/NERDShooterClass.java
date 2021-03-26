@@ -1,4 +1,4 @@
-/* Copyright (c) 2017 FIRST. All rights reserved.
+ /* Copyright (c) 2017 FIRST. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted (subject to the limitations in the disclaimer below) provided that
@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package treamcode;
+package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -39,7 +39,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 
 import java.util.List;
 
-import static android.os.SystemClock.sleep;
+//import static android.os.SystemClock.sleep;
 
 
 /**
@@ -59,16 +59,17 @@ import static android.os.SystemClock.sleep;
 
 public class NERDShooterClass{
     //Set these two variables to the indexer home position and the indexer pushed position
-public static final double indexerHomePos = 1.0;
-public static final double indexerPushedPos = 0.45;
-private HardwareMap hardwareMap;
-public DcMotor shooterMotor;
-public Servo indexingServo;
-LinearOpMode opMode;
-public NERDShooterClass(LinearOpMode opmode) {
-    this.opMode = opmode;
-    this.hardwareMap = opmode.hardwareMap;
-}
+    public static final double indexerHomePos = 1.0;
+    public static final double indexerPushedPos = 0.45;
+    private HardwareMap hardwareMap;
+    private DcMotor shooterMotor;
+    private Servo indexingServo;
+    private DcMotor intakeMotor;
+    LinearOpMode opMode;
+    public NERDShooterClass(LinearOpMode opmode) {
+        this.opMode = opmode;
+        this.hardwareMap = opmode.hardwareMap;
+    }
 
     //Function to index rings. This will not run the motor. Run the motor function first,
     //before using this function to index the rings
@@ -76,7 +77,7 @@ public NERDShooterClass(LinearOpMode opmode) {
         int count = 0;
         boolean cycle = true;
         indexingServo.setPosition(indexerHomePos);
-        while(count < 6){
+        while(count < 8){
             double position = 0.0;
 
             if (cycle) {
@@ -89,13 +90,19 @@ public NERDShooterClass(LinearOpMode opmode) {
                 cycle = true;
             }
 
+            if(count == 6 || count == 7) {
+                intakeMotor.setPower(-1);
+            }
+
             // Set the servo to the new position and pause;
             indexingServo.setPosition(position);
-            sleep(500);
+            opMode.sleep(1000);
+            //sleep(1000);
             count++;
         }
         //Stop Motor
-//       shooterMotor.setPower(0);
+        shooterMotor.setPower(0);
+        intakeMotor.setPower(0);
     }
     //Function to run shooter motor. Run this function and then sleep for a little bit to let
     //the motor charge up. Then run the indexRings function
@@ -104,15 +111,19 @@ public NERDShooterClass(LinearOpMode opmode) {
     }
 
     public void stopShooterMotor() {
-           runShooterMotor(0);
+        runShooterMotor(0);
     }
 
     //Initialize the shooter and indexer
     public void initialize() {
-    //Change the deviceName parameter to whatever the motor/servo is named in your config
+        //Change the deviceName parameter to whatever the motor/servo is named in your config
         shooterMotor = hardwareMap.get(DcMotor.class, "Front");
         indexingServo = hardwareMap.get(Servo.class, "indexingServo");
+        intakeMotor = hardwareMap.get(DcMotor.class, "Right");
         indexingServo.setPosition(indexerHomePos);
+
+        shooterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        intakeMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     public void indexRingsOnce() {
@@ -131,10 +142,10 @@ public NERDShooterClass(LinearOpMode opmode) {
                 cycle = true;
             }
             indexingServo.setPosition(position);
-            sleep(500);
+            opMode.sleep(500);
+            //sleep(500);
             count++;
         }
     }
 }
-
 

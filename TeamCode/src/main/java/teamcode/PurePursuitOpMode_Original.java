@@ -4,7 +4,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import treamcode.CurvePoint;
-import treamcode.DetectObjects_Shoot_Class;
 import treamcode.NerdPID_PurePursuit;
 import treamcode.wobble_Pickup;
 
@@ -12,39 +11,44 @@ import java.util.ArrayList;
 
 //import Functions.CurvePoint;
 
-@Autonomous(name="PurePursuitOpMode", group="Linear Opmode")
+@Autonomous(name="PurePursuitOpMode_Original", group="Linear Opmode")
 
-public class PurePursuitOpMode extends LinearOpMode {
+public class PurePursuitOpMode_Original extends LinearOpMode {
 
     private PurePursuitRobotMovement6 myPurePursuitRobotMovement6;
-    private wobble_Pickup mywobble_Pickup;
+//    private wobble_Pickup mywobble_Pickup;
     private DetectObjects_Shoot_Class myDetectObjects;
 
     boolean debugFlag = true;
 
-    double purePursuitPath;
+    double purePursuitPath = 4;
 
     @Override
     public void runOpMode() {
+
+//        mywobble_Pickup = new wobble_Pickup (this);
+        myDetectObjects = new DetectObjects_Shoot_Class(this);
+//        mywobble_Pickup.wobbleInit();
+        myDetectObjects.initialize();
+        //Initialize the PID Calculators
+
+        purePursuitPath = myDetectObjects.runDetectShoot();
+
+        telemetry.addData("Vision", "Completed");
+        telemetry.update();
+
         //Create a NerdBOT object
         myPurePursuitRobotMovement6 = new PurePursuitRobotMovement6(this);
-        mywobble_Pickup = new wobble_Pickup (this);
-        myDetectObjects = new DetectObjects_Shoot_Class(this);
-
         myPurePursuitRobotMovement6.setDebug(debugFlag);
 
         //Initialize Hardware
         myPurePursuitRobotMovement6.initializeHardware();
-        mywobble_Pickup.wobbleInit();
-        myDetectObjects.initialize();
-        //Initialize the PID Calculators
-
-        telemetry.addData("Init", "Completed");
-        telemetry.update();
 
         waitForStart();
 
-        myDetectObjects.runDetectShoot();
+        myPurePursuitRobotMovement6.runShoot();
+
+        //myDetectObjects.runDetectShoot();
 
         if (purePursuitPath == 4) {
             //First Path to the Square 4
@@ -57,7 +61,7 @@ public class PurePursuitOpMode extends LinearOpMode {
             myPurePursuitRobotMovement6.followCurve(allPoints, 90, 40, 90, 3);
 
 //        Lower arm and release wobble goal
-            mywobble_Pickup.beginningDown();
+            myPurePursuitRobotMovement6.beginningDown();
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(-11, 113, 1.0, 0.4, 35, 0, 0.3));
@@ -68,7 +72,7 @@ public class PurePursuitOpMode extends LinearOpMode {
             myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 225, 1);
 
 //        Grab wobble goal and raise arm
-            mywobble_Pickup.pickupWobble();
+            myPurePursuitRobotMovement6.pickupWobble();
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 40, 0, 0.3));
@@ -79,7 +83,7 @@ public class PurePursuitOpMode extends LinearOpMode {
             myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
 
 //        Lower arm and release wobble goal
-            mywobble_Pickup.setDownWobble();
+            myPurePursuitRobotMovement6.setDownWobble();
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(-8, 104, 1.0, 0.4, 40, 0, 0.3));
@@ -88,7 +92,7 @@ public class PurePursuitOpMode extends LinearOpMode {
 
             myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 2);
 
-            mywobble_Pickup.pickupWobble();
+            myPurePursuitRobotMovement6.pickupWobble();
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 35, 0, 0.3));
@@ -148,7 +152,7 @@ public class PurePursuitOpMode extends LinearOpMode {
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
 
 //        sleep(1000);
-        mywobble_Pickup.beginningDown();
+        myPurePursuitRobotMovement6.beginningDown();
 
         allPoints = new ArrayList<>();
         allPoints.add(new CurvePoint(6, 88, 1.0, 0.4, 35, 0, 0.3));
@@ -159,7 +163,7 @@ public class PurePursuitOpMode extends LinearOpMode {
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 225, 1);
 
 //        sleep(1000);
-        mywobble_Pickup.pickupWobble();
+        myPurePursuitRobotMovement6.pickupWobble();
 
         allPoints = new ArrayList<>();
         allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 0, 0.3));
@@ -170,7 +174,7 @@ public class PurePursuitOpMode extends LinearOpMode {
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 3);
 
 //        sleep(1000);
-        mywobble_Pickup.setDownWobble();
+        myPurePursuitRobotMovement6.setDownWobble();
 
 
         allPoints = new ArrayList<>();
@@ -180,7 +184,7 @@ public class PurePursuitOpMode extends LinearOpMode {
 
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 3);
 
-        mywobble_Pickup.pickupWobble();
+        myPurePursuitRobotMovement6.pickupWobble();
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 35, 0, 0.3));
@@ -223,7 +227,7 @@ public class PurePursuitOpMode extends LinearOpMode {
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
 
 //        sleep(1000);
-        mywobble_Pickup.beginningDown();
+        myPurePursuitRobotMovement6.beginningDown();
 
         allPoints = new ArrayList<>();
         allPoints.add(new CurvePoint(-18, 66, 1.0, 0.4, 25, 0, 0.3));
@@ -234,7 +238,7 @@ public class PurePursuitOpMode extends LinearOpMode {
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 225, 1);
 
 //        sleep(1000);
-        mywobble_Pickup.pickupWobble();
+        myPurePursuitRobotMovement6.pickupWobble();
 
         allPoints = new ArrayList<>();
         allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 0, 0.3));
@@ -244,7 +248,7 @@ public class PurePursuitOpMode extends LinearOpMode {
         myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
 
 //        sleep(1000);
-        mywobble_Pickup.setDownWobble();
+        myPurePursuitRobotMovement6.setDownWobble();
 
         allPoints = new ArrayList<>();
         allPoints.add(new CurvePoint(-12, 65, 0.6, 0.4, 25, 0, 0.3));

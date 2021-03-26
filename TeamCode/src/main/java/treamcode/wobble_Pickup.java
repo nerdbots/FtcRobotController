@@ -42,7 +42,7 @@ public class wobble_Pickup {
 
     //Closes servo, then picks up wobble goal
     public void pickupWobble() {
-        wobbleServo.setPosition(1);
+        wobbleServo.setPosition(0.75);
 
         opmode.sleep(1000);
 
@@ -50,7 +50,7 @@ public class wobble_Pickup {
         while(Timer.seconds() < 0.75) {
             wobbleMotor.setPower(-0.9);
         }
-        wobbleMotor.setPower(0);
+        wobbleMotor.setPower(0.1);
 
     }
     //Lowers motor, then releases wobble goal
@@ -63,6 +63,18 @@ public class wobble_Pickup {
         wobbleMotor.setPower(0);
         opmode.sleep(500);
         wobbleServo.setPosition(0);
+    }
+
+    public void upWobble() {
+        wobbleServo.setPosition(0.75);
+
+        opmode.sleep(1000);
+
+        Timer.reset();
+        while(Timer.seconds() < 0.75) {
+            wobbleMotor.setPower(-0.9);
+        }
+        wobbleMotor.setPower(0.0);
     }
 
 

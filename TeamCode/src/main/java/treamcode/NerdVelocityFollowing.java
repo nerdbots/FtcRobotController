@@ -20,8 +20,8 @@ public class NerdVelocityFollowing {
     public static double DBanMax = 1;
     public static double DBanMin = -1;
 
-    public static double kP = 0.1;
-    public static double kI = 0.025;
+    public static double kP = 0.1;  //Old 0.1, New 0.4 didn't work
+    public static double kI = 0.025; //Old 0.025, New 0.2 didn't work
     public static double kD = 0;
 
     public static double FLError = 0;

@@ -1,20 +1,20 @@
 package opencv.core;
 
 //javadoc:Point_
-public class Point {
+public class PointPP {
 
     public double x, y;
 
-    public Point(double x, double y) {
+    public PointPP(double x, double y) {
         this.x = x;
         this.y = y;
     }
 
-    public Point() {
+    public PointPP() {
         this(0, 0);
     }
 
-    public Point(double[] vals) {
+    public PointPP(double[] vals) {
         this();
         set(vals);
     }
@@ -29,11 +29,11 @@ public class Point {
         }
     }
 
-    public Point clone() {
-        return new Point(x, y);
+    public PointPP clone() {
+        return new PointPP(x, y);
     }
 
-    public double dot(Point p) {
+    public double dot(PointPP p) {
         return x * p.x + y * p.y;
     }
 
@@ -52,8 +52,8 @@ public class Point {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (!(obj instanceof Point)) return false;
-        Point it = (Point) obj;
+        if (!(obj instanceof PointPP)) return false;
+        PointPP it = (PointPP) obj;
         return x == it.x && y == it.y;
     }
 
