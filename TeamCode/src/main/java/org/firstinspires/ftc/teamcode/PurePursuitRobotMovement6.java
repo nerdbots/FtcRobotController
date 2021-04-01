@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -19,14 +20,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.Velocity;
-import opencv.core.Point;
+
+import opencv.core.PointPP;
 import treamcode.CurvePoint;
 import treamcode.MathFunctions;
 import treamcode.NerdPID_PurePursuit;
 import treamcode.NerdVelocityFollowing;
-import treamcode.wobble_Pickup;
 
 import java.util.ArrayList;
+
+import static android.os.SystemClock.sleep;
 
 public class PurePursuitRobotMovement6 {
 
@@ -43,17 +46,23 @@ public class PurePursuitRobotMovement6 {
     private DcMotor rearLeftMotor;
     private DcMotor rearRightMotor;
 
-    private DcMotor frontEncoder;
+    private DcMotorEx frontEncoder;
     private DcMotor rightEncoder;
     private DcMotor leftEncoder;
     private DcMotor backEncoder;
 
+    Servo wobbleServo;
+    private Servo indexingServo;
+
+    public static final double indexerHomePos = 1.0;
+    public static final double indexerPushedPos = 0.45;
+
 //    private DcMotor wobbleMotor;
 //    Servo wobbleServo;
 
-    private ElapsedTime runtime = new ElapsedTime();
+//    private ElapsedTime runtime = new ElapsedTime();
     private ElapsedTime elapsedTime = new ElapsedTime();
-    private ElapsedTime settlingtime = new ElapsedTime();
+    private ElapsedTime Timer = new ElapsedTime();
 
     private BNO055IMU imu = null;   // Gyro device
 
@@ -200,6 +209,12 @@ public class PurePursuitRobotMovement6 {
     double maxVelocity = 0.0;
     double maxAcceleration = 0.0;
 
+
+
+    double shooterVeloc = -1425;
+    //1000
+
+
     /**
      * Constructor to create NerdBOT object
      * <p>
@@ -232,10 +247,13 @@ public class PurePursuitRobotMovement6 {
         this.rearLeftMotor = this.hardwareMap.get(DcMotor.class, "Rear_Left_Motor");
         this.rearRightMotor = this.hardwareMap.get(DcMotor.class, "Rear_Right_Motor");
 
-        this.frontEncoder = this.hardwareMap.get(DcMotor.class, "Front");
+        this.frontEncoder = this.hardwareMap.get(DcMotorEx.class, "Front");
         this.rightEncoder = this.hardwareMap.get(DcMotor.class, "Right");
         this.leftEncoder = this.hardwareMap.get(DcMotor.class, "Left");
         this.backEncoder = this.hardwareMap.get(DcMotor.class, "Back");
+
+        this.wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
+        this.indexingServo = hardwareMap.get(Servo.class, "indexingServo");
 
         // Set up the parameters with which we will use our IMU. Note that integration
         // algorithm here just reports accelerations to the logcat log; it doesn't actually
@@ -261,22 +279,24 @@ public class PurePursuitRobotMovement6 {
 
         imu.startAccelerationIntegration(new Position(), new Velocity(), 1000);
 
-        this.frontEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        this.frontEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
         this.rightEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.leftEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         this.backEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        this.frontEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        this.frontEncoder.setVelocityPIDFCoefficients(200, 0.1, 0, 16);
+
+        this.frontEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         this.rightEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.leftEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         this.backEncoder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
-        this.frontEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        //this.frontEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         this.rightEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.leftEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.backEncoder.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        this.frontEncoder.setDirection(DcMotor.Direction.REVERSE);
+        //this.frontEncoder.setDirection(DcMotorEx.Direction.REVERSE);
         this.rightEncoder.setDirection(DcMotor.Direction.REVERSE);
         this.leftEncoder.setDirection(DcMotor.Direction.REVERSE);
         this.backEncoder.setDirection(DcMotor.Direction.REVERSE);
@@ -301,6 +321,9 @@ public class PurePursuitRobotMovement6 {
         this.frontRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.rearLeftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         this.rearRightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+
+
 
         xPositionOpticalInit = 0;
         yPositionOpticalInit = 0;
@@ -561,19 +584,20 @@ public class PurePursuitRobotMovement6 {
         robotRotOldOpt = robotRotNewOpt;
 
         //robot rotation (each loop) expressed in motor ticks (robot angle, ticks per degree robot rotation...determined through testing for each encoder wheel).
-        double robotRotDisplacementOptFront = robotRotOpt * 0; //21.390 ticks per degree of robot rotation
+        //double robotRotDisplacementOptFront = robotRotOpt * 0; //21.390 ticks per degree of robot rotation
         double robotRotDisplacementOptRight = robotRotOpt * 112.695; //21.085each wheel is mounted slightly different on the bot
         double robotRotDisplacementOptLeft = robotRotOpt * 109.594; //21.318
         double robotRotDisplacementOptBack = robotRotOpt * (-1.012); //21.093
 
         //measure encoder position
-        frontPositionOptical = frontEncoder.getCurrentPosition();
+        //frontPositionOptical = frontEncoder.getCurrentPosition();
+        frontPositionOptical = 0;
         rightPositionOptical = rightEncoder.getCurrentPosition();
         leftPositionOptical = leftEncoder.getCurrentPosition();
         backPositionOptical = backEncoder.getCurrentPosition();
 
         //encoder ticks for each sensor, each loop
-        double frontDisplacement = frontPositionOptical - frontDisplacementOld;
+        //double frontDisplacement = frontPositionOptical - frontDisplacementOld;
         double leftDisplacement = leftPositionOptical - leftDisplacementOld;
         double rightDisplacement = rightPositionOptical - rightDisplacementOld;
         double rearDisplacement = backPositionOptical - rearDisplacementOld;
@@ -584,13 +608,13 @@ public class PurePursuitRobotMovement6 {
         rearDisplacementOld = backPositionOptical;
 
         //Now, remove the ticks caused by z movement from the total encoder count, each loop
-        double frontDispNoRot = frontDisplacement - robotRotDisplacementOptFront;
+        //double frontDispNoRot = frontDisplacement - robotRotDisplacementOptFront;
         double leftDispNoRot = leftDisplacement - robotRotDisplacementOptRight;
         double rightDispNoRot = rightDisplacement - robotRotDisplacementOptLeft;
         double rearDispNoRot = rearDisplacement - robotRotDisplacementOptBack;
 
         //This section was created for debugging
-        frontDispNoRotTotOpt += frontDispNoRot;
+        //frontDispNoRotTotOpt += frontDispNoRot;
         leftDispNoRotTotOpt += leftDispNoRot;
         rightDispNoRotTotOpt += rightDispNoRot;
         rearDispNoRotTotOpt += rearDispNoRot;
@@ -613,11 +637,11 @@ public class PurePursuitRobotMovement6 {
 //        robotXdisplacementOpt = ((-frontDispNoRot + rearDispNoRot) / 2) * ((2.362 * Math.PI) / 8192);
         robotXdisplacementOpt = rearDispNoRot * ((2.362 * 1.01 * Math.PI) / 8192); //added 2% error factor to improve accuracy.  Maybe the wheels are bigger than 60mm
 //        robotXdisplacementOpt = ((-frontDispNoRot + rearDispNoRot) / 2) * ((2.362 * Math.PI) / 1440) / omniDriveFactorOpt;
-        robotXdisplacementOptTot = ((rightDispNoRotTotOpt + leftDispNoRotTotOpt) / 2 + (-frontDispNoRotTotOpt + rearDispNoRotTotOpt) / 2) * ((2.362 * 1.01 * Math.PI) / 8192);
+        //robotXdisplacementOptTot = ((rightDispNoRotTotOpt + leftDispNoRotTotOpt) / 2 + (-frontDispNoRotTotOpt + rearDispNoRotTotOpt) / 2) * ((2.362 * 1.01 * Math.PI) / 8192);
         //calculate Y displacement, and convert ticks to inches (2.362 = wheel diameter inches, 1440 = ticks per wheel rot), and account for robot angle and omni wheel effect
         robotYdisplacementOpt = ((rightDispNoRot - leftDispNoRot) / 2) * ((2.362 * 1.01 * Math.PI) / 8192);
 //        robotYdisplacementOpt = ((rightDispNoRot - leftDispNoRot) / 2) * ((2.362 * Math.PI) / 1440) / omniDriveFactorOpt;
-        robotYdisplacementOptTot = (((rightDispNoRotTotOpt - leftDispNoRotTotOpt) / 2) + ((frontDispNoRotTotOpt + rearDispNoRotTotOpt) / 2)) * ((2.362 * 1.01 * Math.PI) / 8192);
+        //robotYdisplacementOptTot = (((rightDispNoRotTotOpt - leftDispNoRotTotOpt) / 2) + ((frontDispNoRotTotOpt + rearDispNoRotTotOpt) / 2)) * ((2.362 * 1.01 * Math.PI) / 8192);
 
         //Using inverse kinematics, calculate the robot driving direction, from the encoder measurements
         robotVectorByOdoOpt = Math.atan2(robotYdisplacementOpt, robotXdisplacementOpt) * 180 / Math.PI;
@@ -636,6 +660,12 @@ public class PurePursuitRobotMovement6 {
         //Add each x, y loop calculation, to track the robot location on the field
         xPositionOpt += robotFieldPositionXOpt;
         yPositionOpt += robotFieldPositionYOpt;
+
+        if (debugFlag) {
+            RobotLog.d("findDisplacementOptical - runTime %f, deltaTime %f, leftDispNoRot %f, rightDispNoRot %f, rearDispNoRot %f, xPositionOptical %f, yPositionOptical %f, xPower %f, yPower %f, zPower %f, robotRotNewOpt %f, robotVectorByOdoOpt %f, robotFieldAngleOpt %f",
+                    currentTime, loopTime, leftDispNoRot, rightDispNoRot, rearDispNoRot, xPositionOpt, yPositionOpt, xPower, yPower, zPower, robotRotNewOpt, robotVectorByOdoOpt, robotFieldAngleOpt);
+
+        }
 
         //Store the encoder positions and x, y locations in an array and return the values
         double [] positionOptical = {frontPositionOptical, rightPositionOptical, leftPositionOptical, backPositionOptical, xPositionOpt, yPositionOpt, robotVectorByOdoOpt};
@@ -754,10 +784,10 @@ public class PurePursuitRobotMovement6 {
 
             double[] robotPositionXYV = findDisplacementOptical();
 
-            CurvePoint followMe = getFollowPointPath(allPoints, new Point(robotPositionXYV[4], robotPositionXYV[5]),
+            CurvePoint followMe = getFollowPointPath(allPoints, new PointPP(robotPositionXYV[4], robotPositionXYV[5]),
                     allPoints.get(0).followDistance);
 
-            CurvePoint endPoint = getEndPoint(allPoints, new Point(robotPositionXYV[4], robotPositionXYV[5]),
+            CurvePoint endPoint = getEndPoint(allPoints, new PointPP(robotPositionXYV[4], robotPositionXYV[5]),
                     allPoints.get(0).followDistance);
 
             ComputerDebugging.sendKeyPoint(new FloatPoint(followMe.x, followMe.y));
@@ -783,7 +813,7 @@ public class PurePursuitRobotMovement6 {
         rearRightMotor.setPower(0);
     }
 
-    private CurvePoint getFollowPointPath(ArrayList<CurvePoint> pathPoints, Point robotLocation, double followRadius){
+    private CurvePoint getFollowPointPath(ArrayList<CurvePoint> pathPoints, PointPP robotLocation, double followRadius){
         CurvePoint followMe = new CurvePoint(pathPoints.get(0));
 
         for(int i = 0; i < pathPoints.size() - 1; i++){
@@ -792,14 +822,14 @@ public class PurePursuitRobotMovement6 {
 
             double[] robotPositionXYV = findDisplacementOptical();
 
-            ArrayList<Point> intersections = MathFunctions.lineCircleIntersection(robotLocation, followRadius, startLine.toPoint(), endline.toPoint());
+            ArrayList<PointPP> intersections = MathFunctions.lineCircleIntersection(robotLocation, followRadius, startLine.toPoint(), endline.toPoint());
 
             double closestAngle = 100000000;
 
             double closestDistance = 1000000;
 
 
-            for(Point thisIntersection : intersections){
+            for(PointPP thisIntersection : intersections){
 //                double angle = Math.atan2(thisIntersection.y - robotPositionXYV[5], thisIntersection.x - robotPositionXYV[4]);
 //                //Need to check which angle is the same as worldAngle_rad...currently using getAngle() converted to radians
 //                double deltaAngle = Math.abs(MathFunctions.AngleWrap(angle - (robotPositionXYV[6] * Math.PI / 180)));
@@ -824,7 +854,7 @@ public class PurePursuitRobotMovement6 {
         return followMe;
     }
 
-    private CurvePoint getEndPoint(ArrayList<CurvePoint> pathPoints, Point robotLocation, double followRadius){
+    private CurvePoint getEndPoint(ArrayList<CurvePoint> pathPoints, PointPP robotLocation, double followRadius){
 
         int endPathCount = pathPoints.size() - 2;
         CurvePoint endPoint = new CurvePoint(pathPoints.get(endPathCount));
@@ -832,8 +862,8 @@ public class PurePursuitRobotMovement6 {
 //        int pathCount = pathPoints.size();
 //        CurvePoint startPath = pathPoints.get(0);
 //        CurvePoint endPath = pathPoints.get(pathCount - 1);
-//        ArrayList<Point> endPathPoint = MathFunctions.lineCircleIntersection(robotLocation, followRadius, startPath.toPoint(), endPath.toPoint());
-//        for(Point thisEndPathPoint : endPathPoint){
+//        ArrayList<PointPP> endPathPoint = MathFunctions.lineCircleIntersection(robotLocation, followRadius, startPath.toPoint(), endPath.toPoint());
+//        for(PointPP thisEndPathPoint : endPathPoint){
 //            endPoint.setPoint(thisEndPathPoint);
 //        }
 
@@ -1098,8 +1128,218 @@ public class PurePursuitRobotMovement6 {
 
     }
 
+    //    Puts the wobble arm down from it's original position. Used at the start of the match.
+    //    leftEncoder = wobbleMotor
+    public void beginningDown() {
+
+        wobbleServo.setPosition(0);
+        opmode.sleep(300);
+        Timer.reset();
+        while(Timer.seconds() < 0.35) {
+
+            leftEncoder.setPower(0.55);
+        }
+        leftEncoder.setPower(0);
+
+        wobbleServo.setPosition(0);
+
+        opmode.sleep(200);
+
+    }
+
+    //Closes servo, then picks up wobble goal
+    public void pickupWobble() {
+        wobbleServo.setPosition(0.75);
+
+        opmode.sleep(750);
+
+        Timer.reset();
+        while(Timer.seconds() < 0.75) {
+            leftEncoder.setPower(-0.9);
+        }
+        leftEncoder.setPower(0.1);
+
+    }
+    //Lowers motor, then releases wobble goal
+    public void setDownWobble() {
+        Timer.reset();
+        while(Timer.seconds() < 0.35) {
+            leftEncoder.setPower(0.55);
+        }
+
+        leftEncoder.setPower(0);
+
+        wobbleServo.setPosition(0);
+        opmode.sleep(500);
+    }
+
+    public void upWobble() {
+        wobbleServo.setPosition(0.75);
+
+        opmode.sleep(500);
+
+        Timer.reset();
+        while(Timer.seconds() < 0.75) {
+            leftEncoder.setPower(-0.9);
+        }
+        leftEncoder.setPower(0.0);
+    }
+
+//    public void runShoot() {
+//        runShooterMotor(0.92);
+//        opmode.sleep(1000);
+//        indexRings();
+//
+//    }
+//
+//    //Function to run shooter motor. Run this function and then sleep for a little bit to let
+//    //the motor charge up. Then run the indexRings function
+//    //frontEncoder = shooterMotor and rightEncoder = intakeMotor
+//    public void runShooterMotor(double motorPower) {
+//        frontEncoder.setPower(motorPower);
+//    }
+
+//    public void indexRings() {
+//        int count = 0;
+//        boolean cycle = true;
+//        indexingServo.setPosition(indexerHomePos);
+//        while(count < 8){
+//            double position = 0.0;
+//
+//            if (cycle) {
+//                //Make Indexer go forward
+//                position = this.indexerPushedPos;
+//                cycle = false;
+//            } else {
+//                //Make Indexer go backward
+//                position = this.indexerHomePos;
+//                cycle = true;
+//            }
+//
+//            if(count == 6 || count == 7) {
+//                rightEncoder.setPower(-1);
+//            }
+//
+//            // Set the servo to the new position and pause;
+//            indexingServo.setPosition(position);
+//            opmode.sleep(300);
+//            //sleep(1000);
+//            count++;
+//        }
+//        //Stop Motor
+//        frontEncoder.setPower(0);
+//        rightEncoder.setPower(0);
+//    }
+
+    //Function to run shooter motor. Run this function and then sleep for a little bit to let
+//the motor charge up. Then run the indexRings function
+    public void runShoot() {
+
+        int count = 0;
+
+        this.frontEncoder.setVelocity(shooterVeloc);
+
+        while (count < 3) {
+
+            if (Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(shooterVeloc)) < 10) {
+                indexRingsOnce();
+                count++;
+
+            }
+
+        }
+
+    }
+//    public void indexRings() {
+//        boolean shouldIndex = false;
+//        int count = 0;
+//        boolean cycle = true;
+//        double position= 0.0;
+//        indexingServo.setPosition(indexerHomePos);
+//        while(count < 8){
+////            double position= 0.0;
+//            if(shouldIndex) {
+//                if (cycle) {
+//                    //Make Indexer go forward
+//                    position = this.indexerPushedPos;
+//                    cycle = false;
+//                } else {
+//                    //Make Indexer go backward
+//                    position = this.indexerHomePos;
+//                    cycle = true;
+//                }
+//                if (count == 6 || count == 7) {
+//                    this.rightEncoder.setPower(-1);
+//                }
+//            }
+//            // Set the servo to the new position and pause;
+//            indexingServo.setPosition(position);
+//            //checks if the velocity is within a threshold
+//            if(Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(shooterVeloc)) < 20) {
+//                shouldIndex = true;
+//                count++;
+//            } else {
+//                shouldIndex = false;
+//            }
+//        }
+//        //Stop Motor
+//        this.frontEncoder.setVelocity(0);
+//        //this.frontEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+//        this.rightEncoder.setPower(0);
+//    }
+
+
+    public void indexRingsOnce() {
+        boolean cycle = true;
+        indexingServo.setPosition(indexerHomePos);
+        double position = 0.0;
+        int count = 0;
+        while(count < 2) {
+            if (cycle) {
+                //Make Indexer go forward
+                position = this.indexerPushedPos;
+                cycle = false;
+            } else {
+                //Make Indexer go backward
+                position = this.indexerHomePos;
+                cycle = true;
+            }
+            indexingServo.setPosition(position);
+            count++;
+        }
+    }
+
+    public void autonEnd(int rings) {
+
+        runShoot();
+
+        if(rings == 1) { //Pick up one Ring, fire once
+            //Insert drive back here
+            rightEncoder.setPower(1);
+            //insert Drive forward/park here
+
+        } else if(rings == 4) { //Pick up rings, Fire 2-3?
+            //Drive back slow, knock over rings
+            rightEncoder.setPower(1);
+            //Intake rings
+            opmode.sleep(200);
+            rightEncoder.setPower(-1); //Spit out extra ring if we got 4
+            //insert Drive forward/park here
+
+        } else {} //For 0 rings
+
+
+    }
+
 
 }
+
+
+
+
+
+
+
 
 
 

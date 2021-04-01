@@ -126,7 +126,7 @@ public class NERDTFObjectDetector {
         }
 
         if (this.opmode.opModeIsActive()) {
-            while (this.opmode.opModeIsActive()  && (runtime.seconds() < 1.0)) {
+            while (this.opmode.opModeIsActive() /* && (runtime.seconds() < 1.0)*/) {
 
                 if (tfod != null) {
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();

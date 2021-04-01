@@ -25,6 +25,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -34,6 +35,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 
 import java.sql.Time;
+
+import treamcode.NerdVelocityFollowing;
+
+import static org.firstinspires.ftc.teamcode.NerdVelocityFollowing_Teleop.velocityFollowing;
+import static org.firstinspires.ftc.teamcode.NerdVelocityFollowing_Teleop.wheelDiameter;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -51,9 +57,20 @@ import java.sql.Time;
 @TeleOp(name="Teleop", group="Final")
 public class TeleOp_1 extends LinearOpMode {
 
+
+    boolean useVisionShoot = false;
+
+    boolean visionTelemetry = false;
+
+    double turnAngleVision = 0;
+
+    double angleOffsetVision = 0; //1.3
+
     NERDTFObjectDetector nerdtfObjectDetector ;
-    NERDShooterClass nerdShooterClass;
+    NERDShooterClass_TeleOp nerdShooterClass;
     public Recognition recognition;
+
+    NerdVelocityFollowing_Teleop NerdVelocityFollowing = new NerdVelocityFollowing_Teleop();
 
     private DcMotor wobbleMotor;
     Servo wobbleServo;
@@ -69,10 +86,15 @@ public class TeleOp_1 extends LinearOpMode {
     private DcMotor rearRightMotor;
     private DcMotor frontLeftMotor;
     private DcMotor rearLeftMotor;
-    private DcMotor shooter;
+    private DcMotorEx shooter;
     private DcMotor intake;
-    private  Servo indexingServo;
+    private Servo indexingServo;
+    private Servo kickerServo;
 
+    private ElapsedTime elapsedTime = new ElapsedTime();
+
+
+    private double shooterveloc = -1425;
 
     Orientation angles;
     Acceleration gravity;
@@ -100,7 +122,7 @@ public class TeleOp_1 extends LinearOpMode {
     private double ZDerror = 0;
 
 
-    private double ZkP = 0.013; //0.011
+    private double ZkP = 0.013; //0.013
     private double ZkI = 0.000; //0.000
     private double ZkD = 0.0013;//0.00145
 
@@ -116,11 +138,27 @@ public class TeleOp_1 extends LinearOpMode {
     private double MaxSpeedZ = 1.0;
 
 
+    double prevTickTime = 0;
+    int prevLeft = 0, prevRight = 0, prevLeftB = 0, prevRightB = 0;
+    private final double wheelDiameter = 3.54331; // For omni wheels we are using
+    private final double wheelMountAngle = 45.0; //For current drivetrain
+    private final double GEAR_RATIO = 20.0 / 15.0;  // Gear ratio
+    private final double ticksPerRotation = 540.0; //For omni wheels we are using
+    public double [] Velocities = new double[5];
+    double maxVelocity = 0.0;
+    double maxAcceleration = 0.0;
+
+    double count = 0;
+
+    double ZTarVision = 0;
+
+
+
     @Override
     public void runOpMode() {
 
         nerdtfObjectDetector= new NERDTFObjectDetector(this, "BlueGoal.tflite", "BlueGoal", "BluePowerShot", 610, 610, 5);
-        nerdShooterClass = new NERDShooterClass(this);
+        nerdShooterClass = new NERDShooterClass_TeleOp(this);
         // nerdPIDCalculator = new NerdPIDCalculator("goalTarget", kP, kI, kD);
         nerdtfObjectDetector.initialize();
 
@@ -132,9 +170,16 @@ public class TeleOp_1 extends LinearOpMode {
         rearRightMotor = hardwareMap.get(DcMotor.class, "Rear_Right_Motor");
         wobbleMotor = hardwareMap.get(DcMotor.class, "Left");
         wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
-        shooter = hardwareMap.get(DcMotor.class, "Front");
+        shooter = hardwareMap.get(DcMotorEx.class, "Front");
         intake = hardwareMap.get(DcMotor.class, "Right");
         indexingServo = hardwareMap.get(Servo.class, "indexingServo");
+        kickerServo = hardwareMap.get(Servo.class, "Kicker_Servo");
+
+
+        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+
 
 
         //  globalAngle = 0;/imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES).firstAngle;
@@ -167,6 +212,13 @@ public class TeleOp_1 extends LinearOpMode {
 
         nerdShooterClass.initialize();
 
+        double frontLeftMotorPower = 0;
+        double frontRightMotorPower = 0;
+        double rearLeftMotorPower = 0;
+        double rearRightMotorPower = 0;
+        double maxPowerEndPP = 0;
+
+
 
 
         /*
@@ -188,6 +240,11 @@ public class TeleOp_1 extends LinearOpMode {
         double positionAngle = 0.15;  //(MAX_POS - MIN_POS) / 2; 0.25
         double tapeSpeed = 0.0;
 
+
+        double fieldCentricMororPowerFL = 0;
+        double fieldCentricMororPowerFR = 0;
+        double fieldCentricMororPowerRL = 0;
+        double fieldCentricMororPowerRR = 0;
 
 
 
@@ -219,6 +276,15 @@ public class TeleOp_1 extends LinearOpMode {
 
         boolean pressedOnce_shooter = false;
 
+        boolean pressedOnce_shooter_powerShots = false;
+
+        boolean pressedOnce_intake = false;
+        boolean pressedOnce_outtake = false;
+
+        double visionTarget = 0;
+
+        boolean pressed_Once_Vision = true;
+
 
 
 
@@ -238,6 +304,9 @@ public class TeleOp_1 extends LinearOpMode {
 
 
         waitForStart();
+
+        shooter.setVelocityPIDFCoefficients(200, 0.1, 0, 16);
+
 
 
 
@@ -265,13 +334,16 @@ public class TeleOp_1 extends LinearOpMode {
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            //Slowmode
             isShooterMode = gamepad1.left_bumper;
 
+            //Get Joystick commands for "Smash Mouth" turning
             if (gamepad1.left_stick_x != 0 || gamepad1.left_stick_y != 0 ) {
                 joyX = gamepad1.left_stick_x;
                 joyY = gamepad1.left_stick_y;
             }
 
+            //Quick turn using dpad
             if (gamepad1.dpad_up) {
                 joyX = 0;
                 joyY = -1;
@@ -287,38 +359,43 @@ public class TeleOp_1 extends LinearOpMode {
             }
 
 
+            //Quick reset gyro button
             if (gamepad1.y) {
                 resetAngle();
             }
 
 
-            if (gamepad1.b) {
-                BNO055IMU.Parameters parametersb = new BNO055IMU.Parameters();
+//            if (gamepad1.b) {
+//                BNO055IMU.Parameters parametersb = new BNO055IMU.Parameters();
+//
+//                parametersb.mode = BNO055IMU.SensorMode.IMU;
+//                parametersb.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+//                parametersb.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+//                parametersb.loggingEnabled = false;
+//                parametersb.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+//                parametersb.loggingTag = "IMU";
+//                parametersb.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
+//
+//                imu.initialize(parametersb);
+//
+//            }
 
-                parametersb.mode = BNO055IMU.SensorMode.IMU;
-                parametersb.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-                parametersb.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-                parametersb.loggingEnabled = false;
-                parametersb.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-                parametersb.loggingTag = "IMU";
-                parametersb.accelerationIntegrationAlgorithm = new JustLoggingAccelerationIntegrator();
 
-                imu.initialize(parametersb);
-
-            }
-
-
+            //Calculation for "Smash Mouth" turning
             zMag = (joyX * joyX) + (joyY * joyY);
 
 
-            if (Math.sqrt(zMag) > 0.5) {
+            //Turns off manual input if autoshooting using vision, does final calculations for turning
+
+            if (Math.sqrt(zMag) > 0.5)
                 ZTar = Math.atan2(-joyX, -joyY) * 180 / 3.14159;
 
-            }
 
 
+
+            //Turns on or off Slowmode
             if (isShooterMode) {
-                multZ = 0.3;
+                multZ = 0.6;
                 mult = 0.5;
             } else {
                 multZ = 0.6;
@@ -326,6 +403,7 @@ public class TeleOp_1 extends LinearOpMode {
             }
 
 
+            //Drive calculatiokns for field-centric
             CA = (Math.atan2(gamepad1.right_stick_y, -gamepad1.right_stick_x) * 180 / 3.14) + 45;
 
             RSA = (CA - getAngle()) * 3.14 / 180;
@@ -335,6 +413,7 @@ public class TeleOp_1 extends LinearOpMode {
             FX = -Math.sin(RSA) * Mag;
             FY = -Math.cos(RSA) * Mag;
 
+            //Direct tank turning control if slowmode is on
             if(isShooterMode){
                 LMP = -gamepad1.left_stick_x + FX;
                 RMP = -gamepad1.left_stick_x - FX;
@@ -348,15 +427,23 @@ public class TeleOp_1 extends LinearOpMode {
                 BMP = (ZSpeed * multZ) - FY;
             }
 
-            frontLeftMotor.setPower(RMP * mult);
-            rearRightMotor.setPower(LMP * mult);
+            //Outputs field-centric motor commands so Velocity Following
+            fieldCentricMororPowerFL = RMP * mult;
+            fieldCentricMororPowerRR = LMP * mult;
 
-            rearLeftMotor.setPower(FMP * mult);
-            frontRightMotor.setPower(BMP * mult);
+            fieldCentricMororPowerRL = FMP * mult;
+            fieldCentricMororPowerFR = BMP * mult;
 
+            VelocityCommands(fieldCentricMororPowerFL, fieldCentricMororPowerRR, fieldCentricMororPowerRL, fieldCentricMororPowerFR);
 
-
-            PIDArm(getAngle(), ZTar, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+            if(useVisionShoot) {
+                PIDArm(getAngle(), ZTarVision, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+//                if(Math.abs(Math.abs(getAngle()) - Math.abs(turnAngleVision)) < 10) {
+//                    useVisionShoot = false;
+//                }
+            } else {
+                PIDArm(getAngle(), ZTar, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+            }
 
             //up
 
@@ -369,41 +456,11 @@ public class TeleOp_1 extends LinearOpMode {
 
             }
 
-//            if(gamepad2.a && pressedOnce == false) {
-//                pressedOnce = true;
-//
-//                wobbleServo.setPosition(0.7);
-//
-//                sleep(500);
-//
-//                Timer.reset();
-//                while(Timer.seconds() < 0.88) {
-//                    wobbleMotor.setPower(0.9);
-//                }
-//                wobbleMotor.setPower(0.1);
-//
-//            }
-//            //down
-//            if(gamepad2.a && pressedOnce == true) {
-//                pressedOnce = false;
-//
-//
-//                sleep(500);
-//                wobbleServo.setPosition(0);
-//
-//                Timer.reset();
-//                while(Timer.seconds() < 0.17) {
-//                    wobbleMotor.setPower(-0.55);
-//                }
-//
-//
-//                wobbleMotor.setPower(0);
-//
-//
-//                //          sleep(500);
-//
-//            }
 
+
+            if(gamepad1.a) {
+                NerdVelocityFollowing_Teleop.resetI();
+            }
 
 
             if(gamepad2.dpad_left) {
@@ -423,150 +480,82 @@ public class TeleOp_1 extends LinearOpMode {
             }
 
 
-            if(gamepad2.left_trigger > 0.75) {
+            if((gamepad2.left_trigger > 0.75 || gamepad1.left_trigger > 0.75) && pressedOnce_intake == false) {
                 intake.setPower(1);
-            } else if(gamepad2.right_trigger > 0.75) {
+                pressedOnce_intake = true;
+                sleep(200);
+            } else if((gamepad2.right_trigger > 0.75 || gamepad1.right_trigger > 0.75)  && pressedOnce_outtake == false) {
                 intake.setPower(-1);
-            } else {
+                pressedOnce_outtake = true;
+                sleep(200);
+            } else if(((gamepad2.right_trigger > 0.75 || gamepad1.right_trigger > 0.75) || (gamepad2.left_trigger > 0.75 || gamepad1.left_trigger > 0.75)) && (pressedOnce_intake == true || pressedOnce_outtake)) {
                 intake.setPower(0);
+                pressedOnce_intake = false;
+                pressedOnce_outtake = false;
+                sleep(200);
             }
 
             if(gamepad2.left_bumper && pressedOnce_shooter == false) {
                 pressedOnce_shooter = true;
-                shooter.setPower(-.90);
+                shooter.setVelocity(shooterveloc);
                 sleep(200);
 
             } if(gamepad2.left_bumper && pressedOnce_shooter == true) {
                 pressedOnce_shooter = false;
 
-                shooter.setPower(0);
+                shooter.setVelocity(0);
 
                 sleep(200);
-
             }
 
-            if(gamepad2.right_bumper) {
-                indexingServo.setPosition(0.45);
-                sleep(500);
+            if(gamepad2.right_stick_button && pressedOnce_shooter_powerShots == false) {
+                pressedOnce_shooter_powerShots = true;
+                shooter.setVelocity(shooterveloc);
+                sleep(200);
+
+            } if(gamepad2.right_stick_button && pressedOnce_shooter_powerShots == true) {
+                pressedOnce_shooter_powerShots = false;
+
+                shooter.setVelocity(0);
+
+                sleep(200);
+            }
+
+
+            if(gamepad2.dpad_right) {
+                shooter.setPower(1);
+                sleep(1000);
+                shooter.setPower(0);
+            }
+
+            if(gamepad2.right_bumper || gamepad1.right_bumper) {
+                indexingServo.setPosition(-1);
+                sleep(300);
                 indexingServo.setPosition(1);
+            } if(gamepad2.y || gamepad1.b) {
+                kickerServo.setPosition(1);
+                sleep(500);
+                kickerServo.setPosition(-1);
             }
             //high goal
-            if(gamepad2.x) {
-                recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+//            if(gamepad1.x) {
+//                if(pressed_Once_Vision) {
+//                    detectHighGoalOnce();
+//                    pressed_Once_Vision = false;
+//                    ZTarVision = getAngle()-turnAngleVision;
+//                }
+//            } else {
+//                pressed_Once_Vision = true;
+//                useVisionShoot = false;
+//            }
 
-                if (recognition != null) {
-
-                    telemetry.addData("Angle to Object", recognition.estimateAngleToObject(AngleUnit.DEGREES));
-                    telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
-                    telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
-                    telemetry.update();
-
-
-                    boolean isTargetAligned=false;
-                    int count=0;
-                    while (!(recognition == null)  && !isTargetAligned) {
-                        count++;
-                        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-
-                        if (nerdtfObjectDetector.findObjectCenter(recognition) <= 380) {
-                            telemetry.addData("Uh Oh:", "You're too far Right. move Left");
-                            telemetry.update();
-                            frontLeftMotor.setPower(maxAlignSpeed);
-                            rearLeftMotor.setPower(maxAlignSpeed);
-                            frontRightMotor.setPower(maxAlignSpeed);
-                            rearRightMotor.setPower(maxAlignSpeed);
-                        } else if (nerdtfObjectDetector.findObjectCenter(recognition) >= 400) {
-                            telemetry.addData("Uh Oh:", "You're too far Lft. move Right");
-                            telemetry.update();
-                            frontRightMotor.setPower(-maxAlignSpeed);
-                            rearRightMotor.setPower(-maxAlignSpeed);
-                            frontLeftMotor.setPower(-maxAlignSpeed);
-                            rearLeftMotor.setPower(-maxAlignSpeed);
-                        } else {
-
-                            telemetry.addData("You're Good to go:", "You are within the 20 pixel threshold");
-                            telemetry.update();
-                            nerdShooterClass.indexRings();
-                            isTargetAligned = true;
-                        }
-                        frontRightMotor.setPower(0);
-                        rearRightMotor.setPower(0);
-                        frontLeftMotor.setPower(0);
-                        rearLeftMotor.setPower(0);
-                    }
-
-                    telemetry.addData("count:",count);
-                    telemetry.update();
-
-
-
-                }
+            if(gamepad1.x) {
+                shootHighShotVision();
+                visionTelemetry = true;
+            } else {
+                visionTelemetry = false;
+                useVisionShoot = false;
             }
-
-            //power shots
-            if(gamepad2.y) {
-                recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-                if (recognition != null) {
-
-                    telemetry.addData("Angle to Object", recognition.estimateAngleToObject(AngleUnit.DEGREES));
-                    telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
-                    telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
-                    telemetry.addData("Object Right", recognition.getRight());
-
-                    telemetry.update();
-
-                    sleep(2000);
-
-                    boolean isTargetAligned=false;
-                    boolean powerShotsShot = false;
-                    int count=0;
-                    double targetLockedPosition;
-                    double powerShotAimPosition = 370;
-                    while (!(recognition == null)  && !isTargetAligned && (count<3)) {
-                        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-
-                        if (recognition.getRight() <= powerShotAimPosition) {
-                            telemetry.addData("Uh Oh:", "You're too far Right. move Left");
-                            telemetry.update();
-                            frontLeftMotor.setPower(maxAlignSpeed);
-                            rearLeftMotor.setPower(maxAlignSpeed);
-                            frontRightMotor.setPower(maxAlignSpeed);
-                            rearRightMotor.setPower(maxAlignSpeed);
-                        } else if (recognition.getRight() >= powerShotAimPosition+30) {
-                            telemetry.addData("Uh Oh:", "You're too far Lft. move Right");
-                            telemetry.update();
-                            frontRightMotor.setPower(-maxAlignSpeed);
-                            rearRightMotor.setPower(-maxAlignSpeed);
-                            frontLeftMotor.setPower(-maxAlignSpeed);
-                            rearLeftMotor.setPower(-maxAlignSpeed);
-                        } else {
-
-                            targetLockedPosition = recognition.getRight();
-
-                            telemetry.addData("TargetLockedPos", targetLockedPosition);
-                            telemetry.update();
-                            nerdShooterClass.indexRingsOnce();
-                            powerShotAimPosition = powerShotAimPosition-30;
-                            count++;
-
-                            if(count ==3) isTargetAligned = true;
-                        }
-                        frontRightMotor.setPower(0);
-                        rearRightMotor.setPower(0);
-                        frontLeftMotor.setPower(0);
-                        rearLeftMotor.setPower(0);
-                    }
-
-                    telemetry.addData("count:",count);
-                    telemetry.update();
-
-
-
-                }
-            }
-
-
-
 
 
 
@@ -574,24 +563,31 @@ public class TeleOp_1 extends LinearOpMode {
             //add telemetry
 
 
-            telemetry.addData("IsPressed", pressedOnce);
-            telemetry.addData("X", FX);
-            telemetry.addData("Y", FY);
-            telemetry.addData("CA", CA);
-            telemetry.addData("RSA", RSA);
-            telemetry.addData("RA", getAngle());
+//            telemetry.addData("IsPressed", pressedOnce);
+//            telemetry.addData("X", FX);
+//            telemetry.addData("Y", FY);
+//            telemetry.addData("CA", CA);
+//            telemetry.addData("RSA", RSA);
+//            telemetry.addData("RA", getAngle());
+//
+//            telemetry.addData("zMag", zMag);
+//            telemetry.addData("ZTar", ZTar);
+//
+//            telemetry.addData("FREV", frontRightMotor.getCurrentPosition());
+//            telemetry.addData("FLEV", frontLeftMotor.getCurrentPosition());
+//            telemetry.addData("RREV", rearRightMotor.getCurrentPosition());
+//            telemetry.addData("RLEV", rearLeftMotor.getCurrentPosition());
 
-            telemetry.addData("zMag", zMag);
-            telemetry.addData("ZTar", ZTar);
-
-            telemetry.addData("FREV", frontRightMotor.getCurrentPosition());
-            telemetry.addData("FLEV", frontLeftMotor.getCurrentPosition());
-            telemetry.addData("RREV", rearRightMotor.getCurrentPosition());
-            telemetry.addData("RLEV", rearLeftMotor.getCurrentPosition());
+            if(!visionTelemetry) {
+                telemetry.addData("Status", "Manual Shooting");
+                telemetry.update();
+            }
 
 
-            telemetry.addData("Status", "Running");
-            //   telemetry.update();
+
+
+        //    telemetry.addData("Status", "Running");
+
             //  }
 
         }
@@ -696,5 +692,287 @@ public class TeleOp_1 extends LinearOpMode {
 
         return globalAngle;
     }
+
+    private void VelocityCommands(double frontLeftMotorPower, double rearRightMotorPower, double rearLeftMotorPower, double frontRightMotorPower) {
+
+        double frontLeftMotorTarget = powerToSpeed(frontLeftMotorPower);
+        double rearRightMotorTarget = powerToSpeed(rearRightMotorPower);
+        double frontRightMotorTarget = powerToSpeed(frontRightMotorPower);
+        double rearLeftMotorTarget = powerToSpeed(rearLeftMotorPower);
+
+        getVelocityForCurrentLoop();
+
+        double frontLeftMotorSpeed = Velocities[0];
+        double rearRightMotorSpeed = Velocities[3];
+        double frontRightMotorSpeed = Velocities[1];
+        double rearLeftMotorSpeed = Velocities[2];
+        double deltaTime = Velocities[4];
+
+        double [] motorSpeedCommand = NerdVelocityFollowing.velocityFollowing(frontLeftMotorTarget, rearRightMotorTarget,
+                frontRightMotorTarget, rearLeftMotorTarget, frontLeftMotorSpeed, rearRightMotorSpeed, frontRightMotorSpeed,
+                rearLeftMotorSpeed, deltaTime);
+
+        frontLeftMotor.setPower(motorSpeedCommand[0]);
+        rearRightMotor.setPower(motorSpeedCommand[3]);
+        frontRightMotor.setPower(motorSpeedCommand[1]);
+        rearLeftMotor.setPower(motorSpeedCommand[2]);
+
+
+
+//        telemetry.addData("flCommandedVelocity", frontLeftMotorTarget);
+//        telemetry.addData("frCommandedVelocity", frontRightMotorTarget);
+//        telemetry.addData("rlCommandedVelocity", rearLeftMotorTarget);
+//        telemetry.addData("rrCommandedVelocity", rearRightMotorTarget);
+//        telemetry.addData("flActualVelocity", Velocities[0]);
+//        telemetry.addData("frActualVelocity", Velocities[1]);
+//        telemetry.addData("rlActualVelocity", Velocities[2]);
+//        telemetry.addData("rrActualVelocity", Velocities[3]);
+//        telemetry.addData("average lag (IPS)", (((Velocities[0]+Velocities[1]+Velocities[2]+Velocities[3])/4)-((frontLeftMotorTarget+frontRightMotorTarget+rearLeftMotorTarget+rearRightMotorTarget)/4)));
+//
+//
+//        telemetry.addData("Status", "Running");
+//        telemetry.update();
+
+    }
+
+
+    public double [] getVelocityForCurrentLoop() {
+        int leftCurrent = frontLeftMotor.getCurrentPosition();
+        int rightCurrent = frontRightMotor.getCurrentPosition();
+        int leftBCurrent = rearLeftMotor.getCurrentPosition();
+        int rightBCurrent = rearRightMotor.getCurrentPosition();
+
+        double tTime = elapsedTime.seconds();
+        double deltaTickTime = tTime - prevTickTime;
+        prevTickTime = tTime;
+
+        double leftInches = ticksToInches((int) (leftCurrent - prevLeft), wheelDiameter, wheelMountAngle);
+        double rightInches = ticksToInches((int) (rightCurrent - prevRight), wheelDiameter, wheelMountAngle);
+        double leftBInches = ticksToInches((int) (leftBCurrent - prevLeftB), wheelDiameter, wheelMountAngle);
+        double rightBInches = ticksToInches((int) (rightBCurrent - prevRightB), wheelDiameter, wheelMountAngle);
+        double frontLeftVelocity = leftInches / deltaTickTime;
+        double frontRightVelocity = rightInches / deltaTickTime;
+        double rearLeftVelocity = leftBInches / deltaTickTime;
+        double rearRightVelocity = rightBInches / deltaTickTime;
+        double avgVelocity = (frontLeftVelocity + frontRightVelocity + rearLeftVelocity + rearRightVelocity) / 4;
+        double currentAcceleration = avgVelocity / deltaTickTime;
+        if (currentAcceleration > maxAcceleration) {
+            maxAcceleration = currentAcceleration;
+        }
+        if (avgVelocity > maxVelocity) {
+            maxVelocity = avgVelocity;
+        }
+        int leftDeltaTicks = leftCurrent - prevLeft;
+        int rightDeltaTicks = rightCurrent - prevRight;
+        int leftBDeltaTicks = leftBCurrent - prevLeftB;
+        int rightBDeltaTicks = rightBCurrent - prevRightB;
+        double avgDeltaTicks = (leftDeltaTicks + rightDeltaTicks + leftBDeltaTicks + rightBDeltaTicks) / 4;
+        prevLeft = leftCurrent;
+        prevRight = rightCurrent;
+        prevLeftB = leftBCurrent;
+        prevRightB = rightBCurrent;
+        Velocities[0] = frontLeftVelocity;
+        Velocities[1] = frontRightVelocity;
+        Velocities[2] = rearLeftVelocity;
+        Velocities[3] = rearRightVelocity;
+        Velocities[4] = deltaTickTime; // added delta time to be used in PID
+
+        return Velocities;  //inches per second
+    }
+
+    public double ticksToInches(int ticks, double wheelDiameter, double wheelMountAngle) {
+        double circum = wheelDiameter * Math.PI;
+        double numberofWheelRotations = (double) ticks / ticksPerRotation;
+        double wheelDistanceToTravel = numberofWheelRotations * circum;
+//        double straightDistanceToTravel = wheelDistanceToTravel; // (Math.cos(Math.toRadians(wheelMountAngle)) * GEAR_RATIO);
+        return wheelDistanceToTravel;
+    }
+
+    private double powerToSpeed (double motorPower){
+        double wheelSpeedRPS = motorPower * 5200 / 60 / 19.2; //convert motor power to wheel rotations per second, 6000 rpm max motor speed, 60 seconds in a minute.
+        double wheelSpeedIPS = wheelSpeedRPS * wheelDiameter * Math.PI; //
+        return wheelSpeedIPS;
+
+    }
+
+    private void shootHighShotVision() {
+        useVisionShoot = true;
+        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+
+        if (recognition != null) {
+
+            telemetry.addData("Angle to Object", recognition.estimateAngleToObject(AngleUnit.DEGREES));
+            telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
+            telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
+            telemetry.update();
+
+
+            boolean isTargetAligned=false;
+
+            if (!(recognition == null)) {
+                //count++;
+                recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+
+
+                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES)+angleOffsetVision;
+                telemetry.addData("Angle to target", turnAngleVision);
+                telemetry.update();
+
+
+
+//                nerdShooterClass.indexRings();
+//                isTargetAligned = true;
+
+
+                if(-5 < turnAngleVision && turnAngleVision < 5) {
+                    telemetry.addData("You're Good to go:", "You are within the 20 pixel threshold");
+                    telemetry.addData("useVisionShoot", useVisionShoot);
+                    telemetry.addData("turnAngleVision", turnAngleVision);
+                    telemetry.update();
+
+                    if (count < 3) {
+
+//                        if(!gamepad1.x) {
+//                            break;
+//                        }
+
+                        if (Math.abs(Math.abs(shooter.getVelocity()) - Math.abs(shooterveloc)) < 10) {
+                            nerdShooterClass.indexRingsOnce();
+                            count++;
+
+                        }
+
+                    }
+
+                    if(count == 3) {
+                        count = 0;
+                        useVisionShoot = false;
+                    }
+
+
+                }
+
+
+
+
+            }
+
+
+
+        }
+    }
+
+    private void shootHighShotVisionOG() {
+            shooter.setVelocity(-2000);
+
+
+            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+            if (recognition != null) {
+
+                telemetry.addData("Angle to Object", recognition.estimateAngleToObject(AngleUnit.DEGREES));
+                telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
+                telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
+                telemetry.addData("Encoder Value Front Left", frontLeftMotor.getCurrentPosition());
+                telemetry.addData("Encoder Value Front Right", frontRightMotor.getCurrentPosition());
+                telemetry.addData("Encoder Value Rear Left", rearLeftMotor.getCurrentPosition());
+                telemetry.addData("Encoder Value Rear Right", rearRightMotor.getCurrentPosition());
+                telemetry.update();
+//                    sleep(5000);
+
+                boolean isTargetAligned = false;
+                int count = 0;
+                while ((recognition != null) && !isTargetAligned) {
+                    if (recognition != null) {
+                        if (nerdtfObjectDetector.findObjectCenter(recognition) <= 360) {
+                            telemetry.addData("Uh Oh:", "You're too far Right. move Left");
+                            telemetry.update();
+                            frontLeftMotor.setPower(maxAlignSpeed);
+                            rearLeftMotor.setPower(maxAlignSpeed);
+                            frontRightMotor.setPower(maxAlignSpeed);
+                            rearRightMotor.setPower(maxAlignSpeed);
+                        } else if (nerdtfObjectDetector.findObjectCenter(recognition) >= 380) {
+                            telemetry.addData("Uh Oh:", "You're too far Left. move Right");
+                            telemetry.update();
+                            frontRightMotor.setPower(-maxAlignSpeed);
+                            rearRightMotor.setPower(-maxAlignSpeed);
+                            frontLeftMotor.setPower(-maxAlignSpeed);
+                            rearLeftMotor.setPower(-maxAlignSpeed);
+                        } else {
+
+                            telemetry.addData("You're Good to go:", "You are within the 20 pixel threshold");
+                            telemetry.addData("Encoder Value Front Left", frontLeftMotor.getCurrentPosition());
+                            telemetry.addData("Encoder Value Front Right", frontRightMotor.getCurrentPosition());
+                            telemetry.addData("Encoder Value Rear Left", rearLeftMotor.getCurrentPosition());
+                            telemetry.addData("Encoder Value Rear Right", rearRightMotor.getCurrentPosition());
+                            telemetry.update();
+////                                sleep(2000);
+//                                while(!isTargetAligned) {
+////                                    if ((Math.abs(shooter.getVelocity()))- Math.abs(shooterveloc)) < 20)) {
+//                                    if((Math.abs(shooter.getVelocity()) - Math.abs(shooterveloc)) < 20) {
+//                                        nerdShooterClass.indexRingsOnce();
+//                                        isTargetAligned = true;
+//                                    }
+//                                }
+
+                            while (count < 3 && isTargetAligned == true) {
+
+                                if(Math.abs(Math.abs(shooter.getVelocity()) - Math.abs(shooterveloc)) < 20) {
+                                    nerdShooterClass.indexRingsOnce();
+                                    count++;
+
+                                }
+
+                            }
+
+
+                        }
+                        frontRightMotor.setPower(0);
+                        rearRightMotor.setPower(0);
+                        frontLeftMotor.setPower(0);
+                        rearLeftMotor.setPower(0);
+                    } else {
+                        telemetry.addData("too bad", "it found nothing");
+                        telemetry.update();
+                        sleep(1000);
+                    }
+                    recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+
+                }
+
+//                    telemetry.addData("count:",count);
+//                    telemetry.update();
+
+
+            }
+            shooter.setVelocity(0);
+
+    }
+
+    private void detectHighGoalOnce() {
+        boolean isObjectDetectedTELEOP = false;
+        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+        while(isObjectDetectedTELEOP == false) {
+            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+            if (recognition == null) {
+                telemetry.addData("No object detected", "L");
+                telemetry.update();
+            } else {
+                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES);
+                useVisionShoot = true;
+                telemetry.addData("object detected", "noice");
+                telemetry.update();
+                isObjectDetectedTELEOP=true;
+
+            }
+//            if(!gamepad1.x) {
+//                useVisionShoot = false;
+//                break;
+//            }
+        }
+        useVisionShoot = false;
+    }
+
+
+
 }
 

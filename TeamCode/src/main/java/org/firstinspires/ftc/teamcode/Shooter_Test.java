@@ -23,6 +23,7 @@ import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
@@ -49,9 +50,6 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 @TeleOp(name="Shooter Test", group="Final")
 public class Shooter_Test extends LinearOpMode {
 
-    NERDTFObjectDetector nerdtfObjectDetector;
-    NERDShooterClass nerdShooterClass;
-    public Recognition recognition;
 
     private DcMotor wobbleMotor;
     Servo wobbleServo;
@@ -59,95 +57,28 @@ public class Shooter_Test extends LinearOpMode {
     private ElapsedTime Timer = new ElapsedTime();
 
 
-    boolean pressedOnce = false;
 
 
-    private BNO055IMU imu;
-    private DcMotor frontRightMotor;
-    private DcMotor rearRightMotor;
-    private DcMotor frontLeftMotor;
-    private DcMotor rearLeftMotor;
-    private DcMotor shooter;
-    private DcMotor intake;
+    private DcMotorEx shooter;
     private Servo indexingServo;
 
-
-    Orientation angles;
-    Acceleration gravity;
-
-    Orientation lastAngles = new Orientation();
-
-    double globalAngle = 0.0;
-
-
-    private ElapsedTime ZPIDTime = new ElapsedTime();
-
-    private ElapsedTime PIDTime = new ElapsedTime();
-
-    private double ZPrevError = 0;
-
-
-    private double ZTotalError = 0;
-
-
-    private double ZSpeed = 0;
-
-
-    private double ZDerror = 0;
-
-
-    private double ZkP = 0.013; //0.011
-    private double ZkI = 0.000; //0.000
-    private double ZkD = 0.0013;//0.00145
-
-
-    double kP = 0.01;
-    double kI = 0;
-    double kD = 0;
-    boolean targetSet = false;
-    double maxAlignSpeed = 0.5;
-
-    private double ZTar = 0;
-
-    private double MaxSpeedZ = 1.0;
 
 
     @Override
     public void runOpMode() {
 
-        nerdtfObjectDetector = new NERDTFObjectDetector(this, "BlueGoal.tflite", "BlueGoal", "BluePowerShot", 610, 610, 5);
-        nerdShooterClass = new NERDShooterClass(this);
-        // nerdPIDCalculator = new NerdPIDCalculator("goalTarget", kP, kI, kD);
-        nerdtfObjectDetector.initialize();
 
 
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        rearLeftMotor = hardwareMap.get(DcMotor.class, "Rear_Left_Motor");
-        frontLeftMotor = hardwareMap.get(DcMotor.class, "Front_Left_Motor");
-        frontRightMotor = hardwareMap.get(DcMotor.class, "Front_Right_Motor");
-        rearRightMotor = hardwareMap.get(DcMotor.class, "Rear_Right_Motor");
         wobbleMotor = hardwareMap.get(DcMotor.class, "Left");
         wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
-        shooter = hardwareMap.get(DcMotor.class, "Front");
-        intake = hardwareMap.get(DcMotor.class, "Right");
+        shooter = hardwareMap.get(DcMotorEx.class, "Front");
         indexingServo = hardwareMap.get(Servo.class, "indexingServo");
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
-        nerdShooterClass.initialize();
 
 
-
-        /*
-        rearMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        frontMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        sleep(500);
-
-        rearMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        frontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-*/
 
         telemetry.addData("Status", "Initialized");
         telemetry.update();
@@ -160,16 +91,26 @@ public class Shooter_Test extends LinearOpMode {
 
 
 
+        shooter.setVelocityPIDFCoefficients(200, 0.1, 0, 16);
 
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-        shooter.setPower(4000);
+        shooter.setVelocity(-1720);
+
+
+            if(gamepad2.right_bumper) {
+                indexingServo.setPosition(0.45);
+                sleep(500);
+                indexingServo.setPosition(1);
+            }
         
 
             
             telemetry.addData("motor speed", shooter.getPower());
+            telemetry.addData("PID coefficients", shooter.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER));
+            telemetry.addData("velocity", shooter.getVelocity());
             telemetry.update();
 
 

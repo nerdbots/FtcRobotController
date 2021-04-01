@@ -1,6 +1,8 @@
 package treamcode;
 
-import opencv.core.Point;
+//import opencv.core.Point;
+//import opencv.core.Point;
+import opencv.core.PointPP;
 
 import java.util.ArrayList;
 
@@ -30,8 +32,8 @@ public class MathFunctions {
         return angle;
     }
 
-    public static ArrayList<Point> lineCircleIntersection (Point circleCenter, double radius,
-                                                           Point linePoint1, Point linePoint2){
+    public static ArrayList<PointPP> lineCircleIntersection (PointPP circleCenter, double radius,
+                                                             PointPP linePoint1, PointPP linePoint2){
 
         if (Math.abs(linePoint1.y - linePoint2.y) < 0.003) {
             linePoint1.y = linePoint2.y + 0.007;
@@ -58,7 +60,7 @@ public class MathFunctions {
 
         double quadraticC = ((Math.pow(m1, 2) * Math.pow(x1, 2))) - (2.0 * y1 * m1 * x1) + Math.pow(y1, 2) - Math.pow(radius, 2);
 
-        ArrayList<Point> allPoints = new ArrayList<>();
+        ArrayList<PointPP> allPoints = new ArrayList<>();
 
         try{
 
@@ -79,7 +81,7 @@ public class MathFunctions {
             //BOUNDING BOX!!!!!!11!!!
 
             if(xRoot1 > minX && xRoot1 < maxX && yRoot1 > minY && yRoot1 < maxY){
-                allPoints.add(new Point(xRoot1, yRoot1));
+                allPoints.add(new PointPP(xRoot1, yRoot1));
             }
 
             double xRoot2 = (-quadraticB - Math.sqrt(Math.pow(quadraticB, 2) - (4.0 * quadraticA * quadraticC))) / (2 * quadraticA);
@@ -90,7 +92,7 @@ public class MathFunctions {
 
 
             if(xRoot2 > minX && xRoot2 < maxX && yRoot2 > minY && yRoot2 < maxY){
-                allPoints.add(new Point(xRoot2, yRoot2));
+                allPoints.add(new PointPP(xRoot2, yRoot2));
 
             }
 

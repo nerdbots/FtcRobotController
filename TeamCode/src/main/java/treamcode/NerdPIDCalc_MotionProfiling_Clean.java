@@ -488,7 +488,6 @@ public class NerdPIDCalc_MotionProfiling_Clean {
     public void runMotors(double FLinTar, double FRinTar, double RLinTar, double RRinTar, double KV, double accelRate) {
 
 
-//todo: if run once, uncomment
 
 //        tickTime.reset();
 

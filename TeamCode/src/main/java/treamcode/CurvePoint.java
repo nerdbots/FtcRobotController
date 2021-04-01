@@ -1,6 +1,7 @@
 package treamcode;
 
-import opencv.core.Point;
+//import opencv.core.Point;
+import opencv.core.PointPP;
 
 public class CurvePoint {
     public double x;
@@ -36,12 +37,12 @@ public class CurvePoint {
         pointLength = thisPoint.pointLength;
     }
 
-    public Point toPoint(){
+    public PointPP toPoint(){
 
-        return new Point(x, y);
+        return new PointPP(x, y);
     }
 
-    public void setPoint(Point point){
+    public void setPoint(PointPP point){
         x = point.x;
         y = point.y;
 

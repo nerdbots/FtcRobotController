@@ -21,8 +21,6 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import android.media.MediaSync;
-
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
@@ -31,7 +29,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
@@ -44,7 +41,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 
 //@TeleOp
-public class DetectObjects_Shoot_Class
+public class DetectObjects_Shoot_Class_Novi
 {
     private HardwareMap hardwareMap;
     public DcMotor shooterMotor;
@@ -61,7 +58,7 @@ public class DetectObjects_Shoot_Class
 
     private ElapsedTime NERDTimer = new ElapsedTime();
 
-    public DetectObjects_Shoot_Class(LinearOpMode opmode) {
+    public DetectObjects_Shoot_Class_Novi(LinearOpMode opmode) {
         this.opMode = opmode;
         this.hardwareMap = opmode.hardwareMap;
         nerdShooterClass = new NERDShooterClass(this.opMode);
@@ -243,7 +240,7 @@ public class DetectObjects_Shoot_Class
         int avg_ring;
 
         // Volatile since accessed by OpMode thread w/o synchronization
-        private volatile DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.RingPosition position_ring = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.RingPosition.NONE;
+        private volatile DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.RingPosition position_ring = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.RingPosition.NONE;
 
         /*
          * This function takes the RGB frame, converts to YCrCb,
@@ -289,7 +286,7 @@ public class DetectObjects_Shoot_Class
         int avg_wobble;
 
         // Volatile since accessed by OpMode thread w/o synchronization
-        private volatile DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.WobblePosition wobble_position = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.WobblePosition.NONE;
+        private volatile DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.WobblePosition wobble_position = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.WobblePosition.NONE;
 
         /*
          * This function takes the RGB frame, converts to YCrCb,
@@ -301,7 +298,7 @@ public class DetectObjects_Shoot_Class
         int avg_Power;
 
         // Volatile since accessed by OpMode thread w/o synchronization
-        private volatile DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.PowerPosition position_power = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.PowerPosition.NONE;
+        private volatile DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.PowerPosition position_power = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.PowerPosition.NONE;
 
         void inputToCb_Power(Mat input)
         {
@@ -361,7 +358,7 @@ public class DetectObjects_Shoot_Class
 
             //position_ring = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.RingPosition.FOUR; // Record our analysis
             if(avg_ring >= FOUR_RING_THRESHOLD) {
-                position_ring = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.RingPosition.FOUR;
+                position_ring = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.RingPosition.FOUR;
             }
             /*
             else if ((avg_ring > THREE_RING_THRESHOLD) && (avg_ring <= FOUR_RING_THRESHOLD)){
@@ -372,9 +369,9 @@ public class DetectObjects_Shoot_Class
             }
             */
             else if ((avg_ring > ONE_RING_THRESHOLD)){
-                position_ring = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.RingPosition.ONE;
+                position_ring = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.RingPosition.ONE;
             }else{
-                position_ring = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.RingPosition.NONE;
+                position_ring = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.RingPosition.NONE;
             }
 
             Imgproc.rectangle(
@@ -401,13 +398,13 @@ public class DetectObjects_Shoot_Class
                     BLUE, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
 */
-            wobble_position = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.WobblePosition.RED; // Record our analysis
+            wobble_position = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.WobblePosition.RED; // Record our analysis
             if(avg_wobble > RED_WOBBLE_THRESHOLD) {
-                wobble_position = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.WobblePosition.RED;
+                wobble_position = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.WobblePosition.RED;
             }else if(avg_BlueWobble > BLUE_WOBBLE_THRESHOLD){
-                wobble_position = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.WobblePosition.BLUE;
+                wobble_position = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.WobblePosition.BLUE;
             }else{
-                wobble_position = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.WobblePosition.NONE;
+                wobble_position = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.WobblePosition.NONE;
             }
 
             Imgproc.rectangle(
@@ -428,11 +425,11 @@ public class DetectObjects_Shoot_Class
                     BLUE, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
 
-            position_power = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.PowerPosition.BLUE; // Record our analysis
+            position_power = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.PowerPosition.BLUE; // Record our analysis
             if(avg_Power > POWER_THRESHOLD2){
-                position_power = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.PowerPosition.BLUE;
+                position_power = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.PowerPosition.BLUE;
             }else{
-                position_power = DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.PowerPosition.NONE;
+                position_power = DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.PowerPosition.NONE;
             }
 
             Imgproc.rectangle(
@@ -443,7 +440,7 @@ public class DetectObjects_Shoot_Class
                     -1); // Negative thickness means solid fill
 
 
-            if(position_power == DetectObjects_Shoot_Class.SkystoneDeterminationPipeline.PowerPosition.BLUE){
+            if(position_power == DetectObjects_Shoot_Class_Novi.SkystoneDeterminationPipeline.PowerPosition.BLUE){
                 Imgproc.rectangle(
                         input,
                         region2_pointA_P,
