@@ -40,7 +40,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * Remove a @Disabled the on the next line or two (if present) to add this opmode to the Driver Station OpMode list,
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
-@Disabled
+//@Disabled
 @TeleOp(name="vision test", group="Final")
 public class VisionTedt extends LinearOpMode {
     NERDTFObjectDetector nerdtfObjectDetector ;
@@ -67,22 +67,22 @@ public class VisionTedt extends LinearOpMode {
 
             count++;
 
-//            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-//
-//            if (recognition != null) {
-//
-//                boolean isTargetAligned = false;
-//
-//                if (!(recognition == null)) {
-//                   // recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-//
+            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
 
-                    //turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES);
+            if (recognition != null) {
+
+                boolean isTargetAligned = false;
+
+                if (!(recognition == null)) {
+                   // recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+
+
+                    turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES);
                     telemetry.addData("Angle to target", turnAngleVision);
                     telemetry.addData("Count", count);
                     telemetry.update();
-            //    }
-           // }
+                }
+            }
 
 
         }

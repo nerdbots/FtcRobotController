@@ -61,11 +61,12 @@ import static android.os.SystemClock.sleep;
 public class NERDShooterClass_TeleOp{
     //Set these two variables to the indexer home position and the indexer pushed position
     public static final double indexerHomePos = 1;
-    public static final double indexerPushedPos = -1;
+    public static final double indexerPushedPos = 0.2;
     private HardwareMap hardwareMap;
     public DcMotorEx shooterMotor;
     public Servo indexingServo;
     public DcMotor intakeMotor;
+    private Servo kickerServo;
 
     private int shooterveloc = -1425;
     private boolean shouldIndex = false;
@@ -131,6 +132,7 @@ public class NERDShooterClass_TeleOp{
         shooterMotor = hardwareMap.get(DcMotorEx.class, "Front");
         indexingServo = hardwareMap.get(Servo.class, "indexingServo");
         intakeMotor = hardwareMap.get(DcMotor.class, "Right");
+        kickerServo = hardwareMap.get(Servo.class, "Kicker_Servo");
         indexingServo.setPosition(indexerHomePos);
 
         shooterMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -138,21 +140,26 @@ public class NERDShooterClass_TeleOp{
 
     public void indexRingsOnce() {
         boolean cycle = true;
+        kickerServo.setPosition(-1);
         indexingServo.setPosition(indexerHomePos);
         double position = indexerHomePos;
+        double position2 = 0;
         int count = 0;
         while(count < 2) {
             if (cycle) {
                 //Make Indexer go forward
                 position = this.indexerPushedPos;
+                position2 = 1;
                 cycle = false;
             } else {
                 //Make Indexer go backward
                 position = this.indexerHomePos;
+                position2 = -1;
                 cycle = true;
             }
             indexingServo.setPosition(position);
-            sleep(300);
+            indexingServo.setPosition(position2);
+            sleep(400);
             count++;
         }
     }

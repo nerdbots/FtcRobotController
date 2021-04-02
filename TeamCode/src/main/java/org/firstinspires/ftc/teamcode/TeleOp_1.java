@@ -80,6 +80,8 @@ public class TeleOp_1 extends LinearOpMode {
 
     boolean pressedOnce = false;
 
+    boolean isDetected = false;
+
 
     private BNO055IMU imu;
     private DcMotor frontRightMotor;
@@ -94,7 +96,7 @@ public class TeleOp_1 extends LinearOpMode {
     private ElapsedTime elapsedTime = new ElapsedTime();
 
 
-    private double shooterveloc = -1425;
+    private double shooterveloc = -1300;
 
     Orientation angles;
     Acceleration gravity;
@@ -157,7 +159,7 @@ public class TeleOp_1 extends LinearOpMode {
     @Override
     public void runOpMode() {
 
-        nerdtfObjectDetector= new NERDTFObjectDetector(this, "BlueGoal.tflite", "BlueGoal", "BluePowerShot", 610, 610, 5);
+        nerdtfObjectDetector= new NERDTFObjectDetector(this, "BlueGoal.tflite", "BlueGoal", 570,  24);
         nerdShooterClass = new NERDShooterClass_TeleOp(this);
         // nerdPIDCalculator = new NerdPIDCalculator("goalTarget", kP, kI, kD);
         nerdtfObjectDetector.initialize();
@@ -437,11 +439,10 @@ public class TeleOp_1 extends LinearOpMode {
             VelocityCommands(fieldCentricMororPowerFL, fieldCentricMororPowerRR, fieldCentricMororPowerRL, fieldCentricMororPowerFR);
 
             if(useVisionShoot) {
-                PIDArm(getAngle(), ZTarVision, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
-//                if(Math.abs(Math.abs(getAngle()) - Math.abs(turnAngleVision)) < 10) {
-//                    useVisionShoot = false;
-//                }
-            } else {
+                PIDArm(-turnAngleVision, visionTarget, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+            } else if(this.isDetected) {
+                ZSpeed = 0;
+            }else {
                 PIDArm(getAngle(), ZTar, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
             }
 
@@ -510,7 +511,7 @@ public class TeleOp_1 extends LinearOpMode {
 
             if(gamepad2.right_stick_button && pressedOnce_shooter_powerShots == false) {
                 pressedOnce_shooter_powerShots = true;
-                shooter.setVelocity(shooterveloc);
+                shooter.setVelocity(-1300);
                 sleep(200);
 
             } if(gamepad2.right_stick_button && pressedOnce_shooter_powerShots == true) {
@@ -529,8 +530,10 @@ public class TeleOp_1 extends LinearOpMode {
             }
 
             if(gamepad2.right_bumper || gamepad1.right_bumper) {
-                indexingServo.setPosition(-1);
-                sleep(300);
+                indexingServo.setPosition(0.2);
+                kickerServo.setPosition(1);
+                sleep(500);
+                kickerServo.setPosition(-1);
                 indexingServo.setPosition(1);
             } if(gamepad2.y || gamepad1.b) {
                 kickerServo.setPosition(1);
@@ -555,6 +558,11 @@ public class TeleOp_1 extends LinearOpMode {
             } else {
                 visionTelemetry = false;
                 useVisionShoot = false;
+            }
+
+            if(gamepad1.x) {
+                telemetry.addData("it works", "yay");
+                telemetry.update();
             }
 
 
@@ -667,7 +675,10 @@ public class TeleOp_1 extends LinearOpMode {
         PrevError = EV/*error*/;
 
 
-        ZSpeed = speed;
+        if(useVisionShoot)
+            ZSpeed = -speed;
+        else
+            ZSpeed = speed;
         ZPrevError = PrevError;
         ZTotalError = TotalError;
 
@@ -801,9 +812,11 @@ public class TeleOp_1 extends LinearOpMode {
 
         if (recognition != null) {
 
-            telemetry.addData("Angle to Object", recognition.estimateAngleToObject(AngleUnit.DEGREES));
+            telemetry.addData("Angle to Object, plus, it freaking works", recognition.estimateAngleToObject(AngleUnit.DEGREES));
             telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
             telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
+            telemetry.addData("Distance", nerdtfObjectDetector.findDistanceToObjectOne(recognition));
+            telemetry.addData("Width in Pixels", recognition.getWidth());
             telemetry.update();
 
 
@@ -814,8 +827,10 @@ public class TeleOp_1 extends LinearOpMode {
                 recognition = nerdtfObjectDetector.detect("BlueGoal", true);
 
 
-                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES)+angleOffsetVision;
-                telemetry.addData("Angle to target", turnAngleVision);
+
+                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES) + angleOffsetVision;
+
+                telemetry.addData("Angle to target it freaking works", turnAngleVision);
                 telemetry.update();
 
 
@@ -825,40 +840,54 @@ public class TeleOp_1 extends LinearOpMode {
 
 
                 if(-5 < turnAngleVision && turnAngleVision < 5) {
-                    telemetry.addData("You're Good to go:", "You are within the 20 pixel threshold");
+                    telemetry.addData("You're Good to go: it freaking works", "You are within the 20 pixel threshold");
                     telemetry.addData("useVisionShoot", useVisionShoot);
                     telemetry.addData("turnAngleVision", turnAngleVision);
+                    telemetry.addData("count", this.count);
                     telemetry.update();
 
-                    if (count < 3) {
+                    this.isDetected = true;
+
+                }
+                    if (this.isDetected && this.count < 3) {
 
 //                        if(!gamepad1.x) {
 //                            break;
 //                        }
 
-                        if (Math.abs(Math.abs(shooter.getVelocity()) - Math.abs(shooterveloc)) < 10) {
-                            nerdShooterClass.indexRingsOnce();
-                            count++;
+                        if (Math.abs(Math.abs(shooter.getVelocity()) - Math.abs(shooterveloc)) < 20) {
+                            kickerServo.setPosition(-1);
+                            indexingServo.setPosition(0.2);
+                            sleep(500);
+                            kickerServo.setPosition(1);
+                            sleep(30);
+                            indexingServo.setPosition(1);
+                            sleep(500);
+                            this.count++;
 
                         }
 
                     }
 
-                    if(count == 3) {
-                        count = 0;
-                        useVisionShoot = false;
-                    }
 
-
-                }
 
 
 
 
             }
 
+            if(count == 3) {
+                count = 0;
+                useVisionShoot = false;
+                this.isDetected = false;
+                kickerServo.setPosition(-1);
+            }
 
 
+
+        }
+        else {
+            telemetry.addData("it didnt find it", "sucks for u");
         }
     }
 

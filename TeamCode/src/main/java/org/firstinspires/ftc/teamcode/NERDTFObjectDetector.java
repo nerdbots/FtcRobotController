@@ -85,10 +85,10 @@ public class NERDTFObjectDetector {
         this.LABEL_SECOND_ELEMENT = LABEL_SECOND_ELEMENT;
         this.LABEL_FIRST_ELEMENT_FOCAL_LENGTH = LABEL_FIRST_ELEMENT_FOCAL_LENGTH;
         this.LABEL_SECOND_ELEMENT_FOCAL_LENGTH = LABEL_SECOND_ELEMENT_FOCAL_LENGTH;
-        this.KNOWN_WIDTH_OF_OBJECT = KNOWN_WIDTH_OF_OBJECT_IN_INCHES;
+        this.KNOWN_WIDTH_OF_OBJECT = 24.0;
     }
     public NERDTFObjectDetector(LinearOpMode opmode, String TFOD_MODEL_ASSET, String LABEL_FIRST_ELEMENT, double LABEL_FIRST_ELEMENT_FOCAL_LENGTH,  double KNOWN_WIDTH_OF_OBJECT_IN_INCHES) {
-        this(opmode, TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, "", LABEL_FIRST_ELEMENT_FOCAL_LENGTH, 0, 8);
+        this(opmode, TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT, "", LABEL_FIRST_ELEMENT_FOCAL_LENGTH, 0, KNOWN_WIDTH_OF_OBJECT_IN_INCHES);
     }
 
 
@@ -126,7 +126,8 @@ public class NERDTFObjectDetector {
         }
 
         if (this.opmode.opModeIsActive()) {
-            while (this.opmode.opModeIsActive() /* && (runtime.seconds() < 1.0)*/) {
+            outerloop:
+            while (this.opmode.opModeIsActive()  && (runtime.seconds() < 1.0)) {
 
                 if (tfod != null) {
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
@@ -151,7 +152,7 @@ public class NERDTFObjectDetector {
                             for (Recognition recognition : updatedRecognitions) {
                                 if(recognition.getLabel().equals(labelToDetect)){
                                     detectedRecognition = recognition;
-                                    break;
+                                    break outerloop;
                                 }
 
                             }

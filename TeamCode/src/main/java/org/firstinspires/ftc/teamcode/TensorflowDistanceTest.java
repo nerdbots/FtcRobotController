@@ -34,9 +34,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.ClassFactory;
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
+import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer.CameraDirection;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 
@@ -52,15 +51,13 @@ import java.util.List;
  * IMPORTANT: In order to use this OpMode, you need to obtain your own Vuforia license key as
  * is explained below.
  */
-@TeleOp(name = "FindFocalLengthCustomModule", group = "Concept")
+@TeleOp(name = "TensorflowDistanceTest", group = "Concept")
 //@Disabled
-public class FindFocalLengthCustom extends LinearOpMode {
+public class TensorflowDistanceTest extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "BlueGoal.tflite";
     private static final String LABEL_FIRST_ELEMENT = "BlueGoal";
     private static final String LABEL_SECOND_ELEMENT = null;
-    public static final double KNOWN_LENGTH_OF_OBJECT = 24;
-    public static final double KNOWN_DISTANCE_TO_OBJECT = 72.0;
-
+    NERDTFObjectDetector nerdtfObjectDetector;
     /*
      * IMPORTANT: You need to obtain your own license key to use Vuforia. The string below with which
      * 'parameters.vuforiaLicenseKey' is initialized is for illustration only, and will not function.
@@ -94,6 +91,7 @@ public class FindFocalLengthCustom extends LinearOpMode {
         // first.
         initVuforia();
         initTfod();
+        nerdtfObjectDetector = new NERDTFObjectDetector(this,"BlueGoal.tflite", "BlueGoal", 1100, 24);
 
         /**
          * Activate TensorFlow Object Detection before we wait for the start command.
@@ -107,10 +105,8 @@ public class FindFocalLengthCustom extends LinearOpMode {
             // If your target is at distance greater than 50 cm (20") you can adjust the magnification value
             // to artificially zoom in to the center of image.  For best results, the "aspectRatio" argument
             // should be set to the value of the images used to create the TensorFlow Object Detection model
-            // (typically 1.78 or 16/9).
-
-            // Uncomment the following line if you want to adjust the magnification and/or the aspect ratio of the input images.
-            //tfod.setZoom(2.5, 1.78);
+            // (typically 16/9).
+            tfod.setZoom(2.5, 16.0/9.0);
         }
 
         /** Wait for the game to begin */
@@ -126,18 +122,14 @@ public class FindFocalLengthCustom extends LinearOpMode {
                     List<Recognition> updatedRecognitions = tfod.getUpdatedRecognitions();
                     if (updatedRecognitions != null) {
                       telemetry.addData("# Object Detected", updatedRecognitions.size());
+
                       // step through the list of recognitions and display boundary info.
                       int i = 0;
                       for (Recognition recognition : updatedRecognitions) {
-                          if(recognition.estimateAngleToObject(AngleUnit.DEGREES) >= 5.0 || recognition.estimateAngleToObject(AngleUnit.DEGREES) <= -5) {
-                              telemetry.addData("Error:", "Angle too severe. Please align your camera to the center of the object and make sure angle is as close to zero as possible.");
-                          }
-                          else {
-                              telemetry.addData("Focal Length", this.getFocalLength(recognition));
-                          }
-                          telemetry.update();
-
+                        telemetry.addData(String.format("label (%d)", i), recognition.getLabel());
+                        telemetry.addData("Distance", nerdtfObjectDetector.findDistanceToObjectOne(recognition));
                       }
+                      telemetry.update();
                     }
                 }
             }
@@ -158,7 +150,7 @@ public class FindFocalLengthCustom extends LinearOpMode {
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
 
         parameters.vuforiaLicenseKey = VUFORIA_KEY;
-        parameters.cameraName = hardwareMap.get(WebcamName.class, "Webcam 1");
+        parameters.cameraDirection = CameraDirection.BACK;
 
         //  Instantiate the Vuforia engine
         vuforia = ClassFactory.getInstance().createVuforia(parameters);
@@ -173,12 +165,8 @@ public class FindFocalLengthCustom extends LinearOpMode {
         int tfodMonitorViewId = hardwareMap.appContext.getResources().getIdentifier(
             "tfodMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         TFObjectDetector.Parameters tfodParameters = new TFObjectDetector.Parameters(tfodMonitorViewId);
-       tfodParameters.minResultConfidence = 0.8f;
-       tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
-       tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT);
+        tfodParameters.minResultConfidence = 0.8f;
+        tfod = ClassFactory.getInstance().createTFObjectDetector(tfodParameters, vuforia);
+        tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_FIRST_ELEMENT);
     }
-    public double getFocalLength(Recognition recognition) {
-        return (recognition.getWidth() * this.KNOWN_DISTANCE_TO_OBJECT)/ this.KNOWN_LENGTH_OF_OBJECT;
-    }
-
 }

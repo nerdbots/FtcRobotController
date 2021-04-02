@@ -18,7 +18,7 @@ public class NerdVelocityFollowing_Teleop {
     public static double DBanMin = -1;
 
     public static double kP = 0.4; //0.4
-    public static double kI = 0.2; //0.2
+    public static double kI = 0.18; //0.2
     public static double kD = 0;   //0.0
  //   public static double kF = 0.01;
 
