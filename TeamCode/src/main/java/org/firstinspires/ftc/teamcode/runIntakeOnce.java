@@ -18,23 +18,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 */
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-
-import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
-
-import static android.os.SystemClock.sleep;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -49,8 +38,8 @@ import static android.os.SystemClock.sleep;
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
 //@Disabled
-@TeleOp(name="Shooter Test", group="Final")
-public class Shooter_Test extends LinearOpMode {
+@TeleOp(name="straight up intake", group="Final")
+public class runIntakeOnce extends LinearOpMode {
 
 
     DcMotor wobbleMotor;
@@ -62,6 +51,7 @@ public class Shooter_Test extends LinearOpMode {
 
 
     DcMotorEx shooter;
+    DcMotor intake;
     Servo indexingServo;
     Servo kickerServo;
 
@@ -77,6 +67,7 @@ public class Shooter_Test extends LinearOpMode {
         shooter = hardwareMap.get(DcMotorEx.class, "Front");
         indexingServo = hardwareMap.get(Servo.class, "indexingServo");
         kickerServo = hardwareMap.get(Servo.class, "Kicker_Servo");
+        intake = hardwareMap.get(DcMotor.class, "Right");
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -89,25 +80,19 @@ public class Shooter_Test extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
 
 
-        double shooterVeloc = -1425;
-
 
         waitForStart();
 
-        kickerServo.setPosition(-1);
-        indexingServo.setPosition(0.2);
 
-
-
-        shooter.setVelocityPIDFCoefficients(200, 10, 0, 16);
 
 
         // run until the end of the match (driver presses STOP)
-        if (opModeIsActive()) {
+        while (opModeIsActive()) {
 
 
-            shooter.setVelocity(-1300);
 
+
+            intake.setPower(1);
 
 
 

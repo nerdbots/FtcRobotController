@@ -20,8 +20,8 @@ public class NerdVelocityFollowing {
     public static double DBanMax = 1;
     public static double DBanMin = -1;
 
-    public static double kP = 0.1;
-    public static double kI = 0.025;
+    public static double kP = 0.1; //0.1
+    public static double kI = 0.025;//0.025
     public static double kD = 0;
 
     public static double FLError = 0;
@@ -284,6 +284,13 @@ public class NerdVelocityFollowing {
 
         return (int) Math.round(KVeloc*tarVeloc-(accelRate*((KVeloc*tarVeloc)-currVeloc)));
 
+    }
+
+    public static void resetI() {
+        FLTotalError = 0;
+        FRTotalError = 0;
+        RLTotalError = 0;
+        RRTotalError = 0;
     }
 
 }

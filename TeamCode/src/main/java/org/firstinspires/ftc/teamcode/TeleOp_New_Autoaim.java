@@ -20,13 +20,12 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Acceleration;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
@@ -34,15 +33,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
-
-
-
-import java.sql.Time;
-
-import treamcode.NerdVelocityFollowing;
-
-import static org.firstinspires.ftc.teamcode.NerdVelocityFollowing_Teleop.velocityFollowing;
-import static org.firstinspires.ftc.teamcode.NerdVelocityFollowing_Teleop.wheelDiameter;
 
 /**
  * This file contains an minimal example of a Linear "OpMode". An OpMode is a 'program' that runs in either
@@ -57,8 +47,8 @@ import static org.firstinspires.ftc.teamcode.NerdVelocityFollowing_Teleop.wheelD
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
 //@Disabled
-@TeleOp(name="Teleop_2", group="Final")
-public class TeleOp_1 extends LinearOpMode {
+@TeleOp(name="Teleop", group="Final")
+public class TeleOp_New_Autoaim extends LinearOpMode {
 
 
     boolean useVisionShoot = false;
@@ -160,6 +150,10 @@ public class TeleOp_1 extends LinearOpMode {
 
     boolean sendMotorCommands = true;
 
+    boolean visionSuccessful = false;
+
+
+    double visionAngle = 0;
 
 
 
@@ -325,6 +319,10 @@ public class TeleOp_1 extends LinearOpMode {
 
         boolean pressedOnceKicker = true;
 
+        boolean pressed_Once_Vision = true;
+
+        boolean pressed_Once_Vision2 = true;
+
 
 
         //   resetAngle();
@@ -453,13 +451,15 @@ public class TeleOp_1 extends LinearOpMode {
 
             VelocityCommands(fieldCentricMororPowerFL, fieldCentricMororPowerRR, fieldCentricMororPowerRL, fieldCentricMororPowerFR);
 
-            if(useVisionShoot) {
-                PIDArm(-turnAngleVision, visionTarget, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
-            } else if(this.isDetected) {
-                ZSpeed = 0;
-            }else {
+            if(useVisionShoot && visionSuccessful) {
+//                PIDArm(-visionAngle, ZTarVision, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+                PIDArm(-visionAngle, ZTarVision, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+
+            } else {
                 PIDArm(getAngle(), ZTar, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
             }
+
+            //todo: THE THING IS HERE
 
             //up
 
@@ -579,32 +579,50 @@ public class TeleOp_1 extends LinearOpMode {
                 pressedOnceIntakeKicker = false;
                 pressed_Once_IntakeKicker2 = false;
             }
-//            if(gamepad1.x) {
-//                if(pressed_Once_Vision) {
-//                    detectHighGoalOnce();
-//                    pressed_Once_Vision = false;
-//                    ZTarVision = getAngle()-turnAngleVision;
-//                }
-//            } else {
-//                pressed_Once_Vision = true;
-//                useVisionShoot = false;
-//            }
+
 
             if(gamepad1.x) {
-                shootHighShotVision();
+                if(pressed_Once_Vision == true) {
+                    visionAngle = getAngleOnce();
+                    ZTarVision = getAngle() - visionAngle;
+                }
+
+                pressed_Once_Vision = false;
                 visionTelemetry = true;
             } else {
                 visionTelemetry = false;
                 useVisionShoot = false;
                 this.isDetected = false;
                 sendMotorCommands = true;
+                visionSuccessful = false;
+                pressed_Once_Vision = true;
               //  kickerServo.setPosition(-1);
             }
 
-//            if(gamepad1.x) {
-//                telemetry.addData("it works", "yay");
-//                telemetry.update();
+//            if(gamepad1.x && pressed_Once_Vision2 == false) {
+//                pressed_Once_Vision2 = true;
+//                if(pressed_Once_Vision == true) {
+//                    visionAngle = getAngleOnce();
+//                    ZTarVision = getAngle() - visionAngle;
+//                }
+//                pressed_Once_Vision = false;
+//                visionTelemetry = true;
+//                sleep(200);
+//            } if(gamepad1.x && pressed_Once_Vision2 == true) {
+//                pressed_Once_Vision2 = false;
+//                visionTelemetry = false;
+//                useVisionShoot = false;
+//                this.isDetected = false;
+//                sendMotorCommands = true;
+//                visionSuccessful = false;
+//                pressed_Once_Vision = true;
+//                //  kickerServo.setPosition(-1);
 //            }
+
+            if(gamepad1.x) {
+                telemetry.addData("it works", "yay");
+                telemetry.update();
+            }
 
 
 
@@ -937,7 +955,84 @@ public class TeleOp_1 extends LinearOpMode {
     }
 
 
+    private double getAngleOnce() {
 
+        double angleToTarget = 0;
+        useVisionShoot = true;
+        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+
+        if (recognition != null) {
+
+            telemetry.addData("Angle to Object, plus, it freaking works", recognition.estimateAngleToObject(AngleUnit.DEGREES));
+            telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
+            telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
+            telemetry.addData("Distance", nerdtfObjectDetector.findDistanceToObjectOne(recognition));
+            telemetry.addData("Width in Pixels", recognition.getWidth());
+            telemetry.update();
+
+
+            boolean isTargetAligned=false;
+
+            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+
+            if (recognition != null) {
+                //count++;
+
+
+                angleToTarget = recognition.estimateAngleToObject(AngleUnit.DEGREES) + angleOffsetVision;
+
+                telemetry.addData("Angle to target", angleToTarget);
+                telemetry.update();
+
+
+
+
+//                nerdShooterClass.indexRings();
+//                isTargetAligned = true;
+
+                visionSuccessful = true;
+            }
+            else{
+                telemetry.addData("Second Detection Failed", "oof");
+                telemetry.update();
+                visionSuccessful=false;
+            }
+        }
+        else {
+            telemetry.addData("it didnt find it", "sucks for u");
+            visionSuccessful = false;
+
+        }
+
+        return angleToTarget;
+
+
+    }
+
+
+    private void detectHighGoalOnce() {
+        boolean isObjectDetectedTELEOP = false;
+        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+        while(isObjectDetectedTELEOP == false) {
+            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+            if (recognition == null) {
+                telemetry.addData("No object detected", "L");
+                telemetry.update();
+            } else {
+                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES);
+                useVisionShoot = true;
+                telemetry.addData("object detected", "noice");
+                telemetry.update();
+                isObjectDetectedTELEOP=true;
+
+            }
+//            if(!gamepad1.x) {
+//                useVisionShoot = false;
+//                break;
+//            }
+        }
+        useVisionShoot = false;
+    }
 
 
 

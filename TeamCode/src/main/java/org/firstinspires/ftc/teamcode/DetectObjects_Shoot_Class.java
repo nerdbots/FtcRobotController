@@ -100,7 +100,7 @@ public class DetectObjects_Shoot_Class
         });
 
         this.NERDTimer.reset();
-        while (this.NERDTimer.seconds() <= 5)
+        while (this.NERDTimer.seconds() <= 5 && !opMode.isStopRequested())
         {
             this.opMode.telemetry.addData("Ring Analysis", pipeline.avg_ring);
             this.opMode.telemetry.addData("Number of Rings : ", pipeline.position_ring);
@@ -113,7 +113,7 @@ public class DetectObjects_Shoot_Class
             //}
 
             // Don't burn CPU cycles busy-looping in this sample
-            this.opMode.sleep(50);
+//            this.opMode.sleep(50);
             if(pipeline.position_ring == SkystoneDeterminationPipeline.RingPosition.FOUR) {
                 ringsNum = 4;
             }
@@ -168,7 +168,8 @@ public class DetectObjects_Shoot_Class
         static final int REGION_HEIGHT_RING = 35;
 
         final int FOUR_RING_THRESHOLD = 130;
-        final int ONE_RING_THRESHOLD = 115;
+        final int ONE_RING_THRESHOLD = 120;
+        //final int ONE_RING_THRESHOLD = 115;
 
         Point region_ring_pointA = new Point(
                 REGION_RING_TOPLEFT_ANCHOR_POINT.x,
