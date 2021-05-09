@@ -57,7 +57,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
     double turnAngleVision = 0;
 
-    double angleOffsetVision = 0; //1.3
+    double angleOffsetVision = 2; //1.3
 
     NERDTFObjectDetector nerdtfObjectDetector ;
     NERDShooterClass_TeleOp nerdShooterClass;
@@ -122,7 +122,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
     private double ZkP = 0.014; //0.014
     private double ZkI = 0.005; //0.000
-    private double ZkD = 0.001;//0.0013
+    private double ZkD = 0.0013;//0.0013
 
 
     double kP = 0.01;
@@ -455,7 +455,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
             if(useVisionShoot && visionSuccessful) {
 //                PIDArm(-visionAngle, ZTarVision, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
-                PIDArm(getAngle(), -ZTarVision, 0.02, 0.05, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+                PIDArm(getAngle(), -ZTarVision, 0.025, 0.01, 0.00, 67);//CAN BE ANYTHING BUT 0 OR 1
                 telemetry.addData("target angle", -ZTarVision);
                 telemetry.addData("Gyro Angle", getAngle());
                 telemetry.addData("vision angle", -visionAngle);
