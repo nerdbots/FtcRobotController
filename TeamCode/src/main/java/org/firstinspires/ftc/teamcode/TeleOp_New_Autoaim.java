@@ -111,6 +111,8 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
     private double ZTotalError = 0;
 
+    private double ZTotalError_Vision = 0;
+
 
     private double ZSpeed = 0;
 
@@ -118,9 +120,9 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
     private double ZDerror = 0;
 
 
-    private double ZkP = 0.014; //0.013
-    private double ZkI = 0.000; //0.000
-    private double ZkD = 0.0013;//0.0013
+    private double ZkP = 0.014; //0.014
+    private double ZkI = 0.005; //0.000
+    private double ZkD = 0.001;//0.0013
 
 
     double kP = 0.01;
@@ -453,10 +455,17 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
             if(useVisionShoot && visionSuccessful) {
 //                PIDArm(-visionAngle, ZTarVision, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
-                PIDArm(-visionAngle, ZTarVision, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+                PIDArm(getAngle(), -ZTarVision, 0.02, 0.05, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+                telemetry.addData("target angle", -ZTarVision);
+                telemetry.addData("Gyro Angle", getAngle());
+                telemetry.addData("vision angle", -visionAngle);
+                telemetry.update();
 
             } else {
                 PIDArm(getAngle(), ZTar, ZkP, ZkI, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
+                telemetry.addData("target angle", ZTar);
+                telemetry.addData("Gyro Angle", getAngle());
+                telemetry.update();
             }
 
             //todo: THE THING IS HERE
@@ -584,18 +593,18 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
             if(gamepad1.x) {
                 if(pressed_Once_Vision == true) {
                     visionAngle = getAngleOnce();
-                    ZTarVision = getAngle() - visionAngle;
+                    ZTarVision = getAngle() + visionAngle;
                 }
 
                 pressed_Once_Vision = false;
-                visionTelemetry = true;
             } else {
-                visionTelemetry = false;
                 useVisionShoot = false;
-                this.isDetected = false;
                 sendMotorCommands = true;
                 visionSuccessful = false;
                 pressed_Once_Vision = true;
+                ZTotalError_Vision = 0;
+                ZTarVision = 0;
+
               //  kickerServo.setPosition(-1);
             }
 
@@ -619,10 +628,6 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 //                //  kickerServo.setPosition(-1);
 //            }
 
-            if(gamepad1.x) {
-                telemetry.addData("it works", "yay");
-                telemetry.update();
-            }
 
 
 
@@ -645,11 +650,11 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 //            telemetry.addData("RREV", rearRightMotor.getCurrentPosition());
 //            telemetry.addData("RLEV", rearLeftMotor.getCurrentPosition());
 
-            if(!visionTelemetry) {
-                telemetry.addData("Status", "Manual Shooting");
-                telemetry.addData("Average I", (NerdVelocityFollowing_Teleop.FLTotalError+NerdVelocityFollowing_Teleop.FRTotalError+NerdVelocityFollowing_Teleop.RLTotalError+NerdVelocityFollowing_Teleop.RRTotalError)/4);
-                telemetry.update();
-            }
+//            if(!visionTelemetry) {
+//                telemetry.addData("Status", "Manual Shooting");
+//                telemetry.addData("Average I", (NerdVelocityFollowing_Teleop.FLTotalError+NerdVelocityFollowing_Teleop.FRTotalError+NerdVelocityFollowing_Teleop.RLTotalError+NerdVelocityFollowing_Teleop.RRTotalError)/4);
+//                telemetry.update();
+//            }
 
 
 
@@ -671,8 +676,8 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
     public void PIDArm ( double EV, double TPos, double kP, double kI, double kD, int motor){
 
         double DError = 0;
-        int DBanMin = -1;
-        int DBanMax = 1;
+        double DBanMin = -.1;
+        double DBanMax = .1;
         int MaxError = 10;
         double error = 0;
         double speed = 0;
@@ -681,7 +686,12 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
         double MaxSpeed = 0;
 
 
-        TotalError = ZTotalError;
+        if(useVisionShoot && visionSuccessful) {
+            TotalError = ZTotalError_Vision;
+        }
+        else {
+            TotalError = ZTotalError;
+        }
         PrevError = ZPrevError;
         PIDTime = ZPIDTime;
         MaxSpeed = MaxSpeedZ;
@@ -735,12 +745,21 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
         PrevError = EV/*error*/;
 
 
-        if(useVisionShoot)
-            ZSpeed = -speed;
-        else
+//        if(useVisionShoot)
+//            ZSpeed = -speed;
+//        else
+
+
             ZSpeed = speed;
+
+        if(useVisionShoot && visionSuccessful) {
+            ZTotalError_Vision = TotalError;
+        }
+        else {
+            ZTotalError = TotalError;
+        }
         ZPrevError = PrevError;
-        ZTotalError = TotalError;
+
 
     }
 
@@ -869,90 +888,6 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
     }
 
-    private void shootHighShotVision() {
-        useVisionShoot = true;
-        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-
-        if (recognition != null) {
-
-            telemetry.addData("Angle to Object, plus, it freaking works", recognition.estimateAngleToObject(AngleUnit.DEGREES));
-            telemetry.addData("Image Center", nerdtfObjectDetector.findImageCenter(recognition));
-            telemetry.addData("Object Center", nerdtfObjectDetector.findObjectCenter(recognition));
-            telemetry.addData("Distance", nerdtfObjectDetector.findDistanceToObjectOne(recognition));
-            telemetry.addData("Width in Pixels", recognition.getWidth());
-            telemetry.update();
-
-
-            boolean isTargetAligned=false;
-
-            if (recognition != null) {
-                //count++;
-                recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-
-
-                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES) + angleOffsetVision;
-
-                telemetry.addData("Angle to target", turnAngleVision);
-                telemetry.update();
-
-
-
-
-//                nerdShooterClass.indexRings();
-//                isTargetAligned = true;
-
-
-                if (recognition != null) {
-
-                    if (-5 < turnAngleVision && turnAngleVision < 5) {
-                        telemetry.addData("You're Good to go: it freaking works", "You are within the 20 pixel threshold");
-                        telemetry.addData("useVisionShoot", useVisionShoot);
-                        telemetry.addData("turnAngleVision", turnAngleVision);
-                        telemetry.addData("count", this.count);
-                        telemetry.update();
-
-                        this.isDetected = true;
-
-                        useVisionShoot = false;
-
-                    }
-                    if (this.isDetected) {
-                        sendMotorCommands = false;
-                        frontLeftMotor.setPower(0);
-                        frontRightMotor.setPower(0);
-                        rearLeftMotor.setPower(0);
-                        rearRightMotor.setPower(0);
-
-//                        if (Math.abs(Math.abs(shooter.getVelocity()) - Math.abs(shooterveloc)) < 20) {
-//                            indexingServo.setPosition(0.8);
-//                            kickerServo.setPosition(-1);
-//                            sleep(500);
-//                            kickerServo.setPosition(1);
-//                            sleep(200);
-//                            indexingServo.setPosition(0.2);
-//                            sleep(200);
-//                            indexingServo.setPosition(0.8);
-//                        }
-
-                        while (gamepad1.x) {
-                            telemetry.addData("return to", "monke");
-                            telemetry.update();
-                        }
-
-                    }
-
-
-                }
-
-
-            }
-        }
-        else {
-            telemetry.addData("it didnt find it", "sucks for u");
-        }
-
-
-    }
 
 
     private double getAngleOnce() {
@@ -971,7 +906,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
             telemetry.update();
 
 
-            boolean isTargetAligned=false;
+//            boolean isTargetAligned=false;
 
             recognition = nerdtfObjectDetector.detect("BlueGoal", true);
 
@@ -1010,29 +945,6 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
     }
 
 
-    private void detectHighGoalOnce() {
-        boolean isObjectDetectedTELEOP = false;
-        recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-        while(isObjectDetectedTELEOP == false) {
-            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
-            if (recognition == null) {
-                telemetry.addData("No object detected", "L");
-                telemetry.update();
-            } else {
-                turnAngleVision = recognition.estimateAngleToObject(AngleUnit.DEGREES);
-                useVisionShoot = true;
-                telemetry.addData("object detected", "noice");
-                telemetry.update();
-                isObjectDetectedTELEOP=true;
-
-            }
-//            if(!gamepad1.x) {
-//                useVisionShoot = false;
-//                break;
-//            }
-        }
-        useVisionShoot = false;
-    }
 
 
 
