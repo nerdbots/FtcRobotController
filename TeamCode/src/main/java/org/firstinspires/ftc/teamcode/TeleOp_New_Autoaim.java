@@ -57,7 +57,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
     double turnAngleVision = 0;
 
-    double angleOffsetVision = 2; //1.3
+    double angleOffsetVision = -5; //1.3
 
     NERDTFObjectDetector nerdtfObjectDetector ;
     NERDShooterClass_TeleOp nerdShooterClass;
@@ -90,7 +90,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
     private  ElapsedTime kickerTime = new ElapsedTime();
 
 
-    private double shooterveloc = -1400;
+    private double shooterveloc = -1425;
 
     Orientation angles;
     Acceleration gravity;
@@ -376,6 +376,8 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
             }
 
 
+
+
             //Quick reset gyro button
             if (gamepad1.y) {
                 resetAngle();
@@ -455,7 +457,7 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
             if(useVisionShoot && visionSuccessful) {
 //                PIDArm(-visionAngle, ZTarVision, ZkP, 0.0001, ZkD, 67);//CAN BE ANYTHING BUT 0 OR 1
-                PIDArm(getAngle(), -ZTarVision, 0.025, 0.01, 0.00, 67);//CAN BE ANYTHING BUT 0 OR 1
+                PIDArm(getAngle(), -ZTarVision, 0.019, 0.005, 0.002, 67);//CAN BE ANYTHING BUT 0 OR 1         0.023, 0.01, 0.0012
                 telemetry.addData("target angle", -ZTarVision);
                 telemetry.addData("Gyro Angle", getAngle());
                 telemetry.addData("vision angle", -visionAngle);
@@ -914,7 +916,21 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
                 //count++;
 
 
-                angleToTarget = recognition.estimateAngleToObject(AngleUnit.DEGREES) + angleOffsetVision;
+           //     angleToTarget = recognition.estimateAngleToObject(AngleUnit.DEGREES) - angleOffsetVision;
+
+                angleToTarget = doStandardDeviation(10, 3);
+
+                if(Math.abs(angleToTarget) <= 10) {
+                    angleOffsetVision = -2;
+                } else if(Math.abs(angleToTarget) > 10 && Math.abs(angleToTarget) <= 15) {
+                    angleOffsetVision = -3;
+                } else if(Math.abs(angleToTarget) > 15 && Math.abs(angleToTarget) <= 20){
+                    angleOffsetVision = -4;
+                } else {
+                    angleOffsetVision = - 5;
+                }
+
+
 
                 telemetry.addData("Angle to target", angleToTarget);
                 telemetry.update();
@@ -939,11 +955,34 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
         }
 
-        return angleToTarget;
+        return angleToTarget-angleOffsetVision;
 
 
     }
 
+    public double doStandardDeviation(int numberOfReadings, int toleranceInDegrees) {
+        double[] readings = new double[numberOfReadings];
+        double average;
+        double sum = 0;
+        for(int i = 0; i <= numberOfReadings - 1; i++) {
+            recognition = nerdtfObjectDetector.detect("BlueGoal", true);
+            readings[i] = recognition.estimateAngleToObject(AngleUnit.DEGREES);
+        }
+        for(int i2 = 0; i2 <= numberOfReadings - 1; i2++) {
+            sum = sum + readings[i2];
+        }
+        average = sum / numberOfReadings;
+        sum = 0;
+        for(int i3 = 0; i3 <= numberOfReadings - 1; i3++) {
+            if(Math.abs(average - readings[i3]) > toleranceInDegrees) {
+                readings[i3] = 0;
+            }
+        }
+        for(int i4 = 0; i4 <= numberOfReadings - 1; i4++) {
+            sum = sum + readings[i4];
+        }
+        return sum / numberOfReadings;
+    }
 
 
 
