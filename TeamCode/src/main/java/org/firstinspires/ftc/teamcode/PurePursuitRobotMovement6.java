@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -367,7 +368,7 @@ public class PurePursuitRobotMovement6 {
 
         prevDistanceToTarget = 20;
 
-        kickerServo.setPosition(-1);
+//        kickerServo.setPosition(-1);
         indexingServo.setPosition(0.65);
 
 //        frontDisplacementOld = 0;
@@ -1312,50 +1313,107 @@ public class PurePursuitRobotMovement6 {
 
     //Function to run shooter motor. Run this function and then sleep for a little bit to let
 //the motor charge up. Then run the indexRings function
-    public void runShoot() {
+//    public void runShoot() {
+//
+//        if ((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(shooterVeloc)) < 20) && this.count < 3) {
+//
+//
+//            shootTime.reset();
+//
+//            if(!(shootTime.seconds() <= 0.5)) {
+//                kickerServo.setPosition(1);
+//                indexingServo.setPosition(1);
+//            } else {
+//                shootTime.reset();
+//                if(!(shootTime.seconds() <= 0.5)) {
+//                    kickerServo.setPosition(-1);
+//                    indexingServo.setPosition(.2);
+//                } else {
+//                    shootTime.reset();
+//                }
+//
+//            }
+//
+//        }
+//
+//    }
 
-        if ((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(shooterVeloc)) < 20) && this.count < 3) {
+//    public void shootThreeRings(double variableShooterVeloc) {
+//        int shooterCount = 0;
+//        while (shooterCount < 3 && !opmode.isStopRequested()) {
+//            while(!((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(variableShooterVeloc)) < 20)) && !opmode.isStopRequested()) {}
+//            indexingServo.setPosition(0.65);
+//            if(shooterCount == 2) {
+//                 kickerServo.setPosition(1);
+//                 sleep(500);
+//                kickerServo.setPosition(-1);
+//                    sleep(50);
+//            }else {
+//                sleep(500);
+//            }
+//            indexingServo.setPosition(0.1);
+//            sleep(500);
+//            indexingServo.setPosition(0.65);
+//            shooterCount++;
+//
+//        }
+//
+//        rightEncoder.setPower(0); //Intake off
+//
+//
+//        //sleep(500);
+//    }
 
-
-            shootTime.reset();
-
-            if(!(shootTime.seconds() <= 0.5)) {
-                kickerServo.setPosition(1);
-                indexingServo.setPosition(1);
-            } else {
-                shootTime.reset();
-                if(!(shootTime.seconds() <= 0.5)) {
-                    kickerServo.setPosition(-1);
-                    indexingServo.setPosition(.2);
-                } else {
-                    shootTime.reset();
-                }
-
-            }
-
-        }
-
-    }
 
     public void shootThreeRings(double variableShooterVeloc) {
-        int shooterCount = 0;
-        while (shooterCount < 3 && !opmode.isStopRequested()) {
-            while(!((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(variableShooterVeloc)) < 20)) && !opmode.isStopRequested()) {}
-            indexingServo.setPosition(0.65);
-            if(shooterCount == 2) {
-                 kickerServo.setPosition(1);
-                 sleep(500);
-                kickerServo.setPosition(-1);
-                    sleep(50);
-            }else {
-                sleep(500);
-            }
-            indexingServo.setPosition(0.1);
-            sleep(500);
-            indexingServo.setPosition(0.65);
-            shooterCount++;
+        backEncoder.setPower(1);
 
-        }
+        sleep(1000);
+
+        backEncoder.setPower(0);
+
+        rightEncoder.setPower(0); //Intake off
+
+
+        //sleep(500);
+    }
+//
+//    public void shootThreeRingsFirst(double variableShooterVeloc) {
+//        int shooterCount = 0;
+//        while (shooterCount < 3 && !opmode.isStopRequested()) {
+//            while(!((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(variableShooterVeloc)) < 30)) && !opmode.isStopRequested()) {
+//                opmode.telemetry.addData("shooter speed", frontEncoder.getVelocity());
+//                opmode.telemetry.update();
+//            }
+//            indexingServo.setPosition(0.65);
+//            if(shooterCount == 2 || shooterCount == 1) {
+//                kickerServo.setPosition(1);
+//                sleep(500);
+//                kickerServo.setPosition(-1);
+//                sleep(50);
+//            }else {
+//                sleep(400);
+//            }
+//            indexingServo.setPosition(0.1);
+//            sleep(500);
+//            indexingServo.setPosition(0.65);
+//            shooterCount++;
+//
+//        }
+//
+//        rightEncoder.setPower(0); //Intake off
+//
+//
+//        //sleep(500);
+//    }
+
+    public void shootThreeRingsFirst() {
+
+        backEncoder.setPower(1);
+
+        sleep(1000);
+
+        backEncoder.setPower(0);
 
         rightEncoder.setPower(0); //Intake off
 
@@ -1363,44 +1421,24 @@ public class PurePursuitRobotMovement6 {
         //sleep(500);
     }
 
-    public void shootThreeRingsFirst(double variableShooterVeloc) {
-        int shooterCount = 0;
-        while (shooterCount < 3 && !opmode.isStopRequested()) {
-            while(!((Math.abs(Math.abs(frontEncoder.getVelocity()) - Math.abs(variableShooterVeloc)) < 30)) && !opmode.isStopRequested()) {
-                opmode.telemetry.addData("shooter speed", frontEncoder.getVelocity());
-                opmode.telemetry.update();
-            }
-            indexingServo.setPosition(0.65);
-            if(shooterCount == 2 || shooterCount == 1) {
-                kickerServo.setPosition(1);
-                sleep(500);
-                kickerServo.setPosition(-1);
-                sleep(50);
-            }else {
-                sleep(400);
-            }
-            indexingServo.setPosition(0.1);
-            sleep(500);
-            indexingServo.setPosition(0.65);
-            shooterCount++;
-
-        }
-
-        rightEncoder.setPower(0); //Intake off
-
-
-        //sleep(500);
-    }
+//    public void shootOneRing() {
+//            indexingServo.setPosition(0.65);
+//            kickerServo.setPosition(1);
+//            sleep(500);
+//            kickerServo.setPosition(-1);
+//            sleep(50);
+//            indexingServo.setPosition(0.1);
+//            sleep(500);
+//            indexingServo.setPosition(0.65);
+//
+//    }
 
     public void shootOneRing() {
-            indexingServo.setPosition(0.65);
-            kickerServo.setPosition(1);
-            sleep(500);
-            kickerServo.setPosition(-1);
-            sleep(50);
-            indexingServo.setPosition(0.1);
-            sleep(500);
-            indexingServo.setPosition(0.65);
+        backEncoder.setPower(1);
+
+        sleep(1000);
+
+        backEncoder.setPower(0);
 
     }
 
@@ -1466,7 +1504,7 @@ public class PurePursuitRobotMovement6 {
 
 
 
-        shootThreeRingsFirst(-1400); //Shoot preloaded rings. Might have to move back a bit first
+        shootThreeRingsFirst(); //Shoot preloaded rings. Might have to move back a bit first
 
        // frontEncoder.setVelocity(0);
 
@@ -1477,7 +1515,7 @@ public class PurePursuitRobotMovement6 {
 
 
             backupTime.reset();
-            rightEncoder.setPower(-1); //Intake on
+            rightEncoder.setPower(1); //Intake on
 //             while (backupTime.seconds() <= 2.25 && opmode.opModeIsActive()) {
             while(movingStuffIg[5] >= -25 && !opmode.isStopRequested()) {
 
@@ -1538,7 +1576,7 @@ public class PurePursuitRobotMovement6 {
          else if(rings == 4) { //Pick up rings, Fire 2-3?
              double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
            //  backupTime.reset();
-             rightEncoder.setPower(-1); //Intake on
+             rightEncoder.setPower(1); //Intake on
 //             while (backupTime.seconds() <= 2.25 && opmode.opModeIsActive()) {
                  while(movingStuffIg[5] >= -30 && !opmode.isStopRequested()) {
                      

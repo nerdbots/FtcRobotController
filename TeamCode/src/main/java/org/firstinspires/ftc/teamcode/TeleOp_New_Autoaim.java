@@ -22,6 +22,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.hardware.bosch.JustLoggingAccelerationIntegrator;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -47,7 +48,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
 //@Disabled
-@TeleOp(name="Teleop", group="Final")
+@TeleOp(name="Teleop", group="so sleepy")
 public class TeleOp_New_Autoaim extends LinearOpMode {
 
 
@@ -83,14 +84,15 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
     private DcMotor rearLeftMotor;
     private DcMotorEx shooter;
     private DcMotor intake;
-    private Servo indexingServo;
+//    private Servo indexingServo;
     private Servo kickerServo;
+    private DcMotor indexingMotor;
 
     private ElapsedTime elapsedTime = new ElapsedTime();
     private  ElapsedTime kickerTime = new ElapsedTime();
 
 
-    private double shooterveloc = -1425;
+    private double shooterveloc = -1340;
 
     Orientation angles;
     Acceleration gravity;
@@ -177,8 +179,9 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
         wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
         shooter = hardwareMap.get(DcMotorEx.class, "Front");
         intake = hardwareMap.get(DcMotor.class, "Right");
-        indexingServo = hardwareMap.get(Servo.class, "indexingServo");
+//        indexingServo = hardwareMap.get(Servo.class, "indexingServo");
         kickerServo = hardwareMap.get(Servo.class, "Kicker_Servo");
+        indexingMotor = hardwareMap.get(DcMotor.class, "Back");
 
 
         shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -314,12 +317,11 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
         waitForStart();
 
-        kickerServo.setPosition(-1);
-        indexingServo.setPosition(0.65);
+//        kickerServo.setPosition(-1);
 
         shooter.setVelocityPIDFCoefficients(200, 10, 0, 16);
 
-        boolean pressedOnceKicker = true;
+        boolean pressedOnceKicker = false;
 
         boolean pressed_Once_Vision = true;
 
@@ -487,9 +489,9 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
 
 
 
-            if(gamepad1.a) {
-                NerdVelocityFollowing_Teleop.resetI();
-            }
+//            if(gamepad1.a) {
+//                NerdVelocityFollowing_Teleop.resetI();
+//            }
 
 
             if(gamepad2.dpad_left) {
@@ -509,13 +511,12 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
             }
 
 
-            if(pressedOnceIntakeKicker) {intake.setPower(0);}
-            else if(((gamepad2.left_trigger > 0.75 || gamepad1.left_trigger > 0.75) && pressedOnce_intake == false) || (pressed_Once_IntakeKicker2 && pressedOnce_intake == false)) {
-                intake.setPower(1);
+            if(((gamepad2.left_trigger > 0.75 || gamepad1.left_trigger > 0.75) && pressedOnce_intake == false)) {
+                intake.setPower(-1);
                 pressedOnce_intake = true;
                 sleep(200);
             } else if((gamepad2.right_trigger > 0.75 || gamepad1.right_trigger > 0.75)  && pressedOnce_outtake == false) {
-                intake.setPower(-1);
+                intake.setPower(1);
                 pressedOnce_outtake = true;
                 sleep(200);
             } else if(((gamepad2.right_trigger > 0.75 || gamepad1.right_trigger > 0.75) || (gamepad2.left_trigger > 0.75 || gamepad1.left_trigger > 0.75)) && (pressedOnce_intake == true || pressedOnce_outtake)) {
@@ -552,44 +553,67 @@ public class TeleOp_New_Autoaim extends LinearOpMode {
             }
 
 
-            if(gamepad2.dpad_right) {
-                shooter.setPower(1);
-                sleep(1000);
-                shooter.setPower(0);
-            }
+//            if(gamepad2.dpad_right) {
+//                shooter.setPower(1);
+//                sleep(1000);
+//                shooter.setPower(0);
+//            }
+
+//            if((gamepad2.right_bumper || gamepad1.right_bumper) && (Math.abs(shooter.getVelocity()) > Math.abs(-500))) {
+//                indexingServo.setPosition(0.65);
+//                kickerServo.setPosition(1);
+//                sleep(500);
+//                kickerServo.setPosition(-1);
+//                sleep(50);
+//                indexingServo.setPosition(0.1);
+//                sleep(500);
+//                indexingServo.setPosition(0.65);
+//            }
 
             if((gamepad2.right_bumper || gamepad1.right_bumper) && (Math.abs(shooter.getVelocity()) > Math.abs(-500))) {
-                indexingServo.setPosition(0.65);
+                indexingMotor.setPower(1);
                 kickerServo.setPosition(1);
-                sleep(500);
-                kickerServo.setPosition(-1);
-                sleep(50);
-                indexingServo.setPosition(0.1);
-                sleep(500);
-                indexingServo.setPosition(0.65);
+            } else {
+                indexingMotor.setPower(0);
+                kickerServo.setPosition(0.5);
             }
 
-            if(gamepad2.y) {
-                if(pressedOnceKicker) {
-                    pressed_Once_IntakeKicker2 = true;
-                    pressedOnceIntakeKicker = true;
-                    intake.setPower(0);
-                    kickerServo.setPosition(1);
-                    kickerTime.reset();
-                    pressedOnceKicker = false;
-                } if((!(kickerTime.seconds() <= 0.5))) {
-                    kickerServo.setPosition(-1);
-                }
-                if(pressedOnce_intake) {
-                    pressedOncceIntakeKicker3 = true;
-                } else {
-                    pressedOncceIntakeKicker3 = false;
-                }
-            } else {
-                pressedOnceKicker = true;
-                pressedOnceIntakeKicker = false;
-                pressed_Once_IntakeKicker2 = false;
-            }
+//            if(gamepad2.y) {
+//                if(pressedOnceKicker) {
+//                    pressed_Once_IntakeKicker2 = true;
+//                    pressedOnceIntakeKicker = true;
+//                    intake.setPower(0);
+//                    kickerServo.setPosition(1);
+//                    kickerTime.reset();
+//                    pressedOnceKicker = false;
+//                } if((!(kickerTime.seconds() <= 0.5))) {
+//                    kickerServo.setPosition(-1);
+//                }
+//                if(pressedOnce_intake) {
+//                    pressedOncceIntakeKicker3 = true;
+//                } else {
+//                    pressedOncceIntakeKicker3 = false;
+//                }
+//            } else {
+//                pressedOnceKicker = true;
+//                pressedOnceIntakeKicker = false;
+//                pressed_Once_IntakeKicker2 = false;
+//            }
+
+//            if(gamepad1.a) {
+//                pressedOnceKicker = true;
+//                kickerServo.setPower(0.1);
+//            } else {
+////                if(pressedOnceKicker == true) {
+////                    kickerServo.setPower(-0.5);
+////                    pressedOnceKicker = false;
+////                    kickerTime.reset();
+////                } else if(kickerTime.seconds() > 0.5) {
+//                    kickerServo.setPower(0);
+//               // }
+//            }
+
+
 
 
             if(gamepad1.x) {

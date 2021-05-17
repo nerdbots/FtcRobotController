@@ -51,7 +51,7 @@ public class PurePursuitOpMode extends LinearOpMode {
 
         waitForStart();
 
-        myPurePursuitRobotMovement6.runShoot();
+//        myPurePursuitRobotMovement6.runShoot();
 
         if (purePursuitPath == 4) {
             //First Path to the Square 4

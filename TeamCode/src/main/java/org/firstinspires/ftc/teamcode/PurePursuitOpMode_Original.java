@@ -209,7 +209,7 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
         myPurePursuitRobotMovement6.upWobble();
 
-        myPurePursuitRobotMovement6.runShoot();
+//        myPurePursuitRobotMovement6.runShoot();
 
 //        allPoints = new ArrayList<>();
 //        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 35, 0, 0.3));
