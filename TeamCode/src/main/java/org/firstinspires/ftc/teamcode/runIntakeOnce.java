@@ -92,7 +92,7 @@ public class runIntakeOnce extends LinearOpMode {
 
 
 
-            intake.setPower(1);
+            intake.setPower(-1);
 
 
 

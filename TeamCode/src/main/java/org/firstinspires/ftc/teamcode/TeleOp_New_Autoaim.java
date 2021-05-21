@@ -48,7 +48,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
 //@Disabled
-@TeleOp(name="Teleop", group="so sleepy")
+@TeleOp(name="Teleop", group="AAAh so sleepy")
 public class TeleOp_New_Autoaim extends LinearOpMode {
 
 

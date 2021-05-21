@@ -18,7 +18,7 @@ import java.util.ArrayList;
 public class PurePursuitOpMode_Original extends LinearOpMode {
 
     private PurePursuitRobotMovement6 myPurePursuitRobotMovement6;
-//    private wobble_Pickup mywobble_Pickup;
+    //    private wobble_Pickup mywobble_Pickup;
     private DetectObjects_Shoot_Class myDetectObjects;
 
     boolean debugFlag = true;
@@ -36,7 +36,7 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
         purePursuitPath = myDetectObjects.runDetect();
 
-      //  purePursuitPath = 4;
+        //  purePursuitPath = 4;
 
         telemetry.addData("Vision", "Completed DONT PRESS PLAY");
         telemetry.update();
@@ -65,13 +65,13 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
         //myDetectObjects.runDetectShoot();
 
-    //    purePursuitPath = 4;
+        //    purePursuitPath = 4;
 
         if (purePursuitPath == 4) {
             //First Path to the Square 4
             ArrayList<CurvePoint> allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 40, 0, 0.3));
-            allPoints.add(new CurvePoint(-6, 40, 1.0, 0.3, 40, 180, 0.3));
+            allPoints.add(new CurvePoint(-12, 40, 1.0, 0.3, 40, 180, 0.3));
             allPoints.add(new CurvePoint(-18, 109, 1.0, 0.3, 40, 180, 0.3));
             allPoints.add(new CurvePoint(-18, 171, 1.0, 0.3, 40, 180, 0.3));
 
@@ -82,9 +82,9 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(-18, 109, 1.0, 0.4, 35, 0, 0.3));
-            allPoints.add(new CurvePoint(20, 100, 1.0, 0.4, 35, 180, 0.3));
-            allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 180, 0.3));
-            allPoints.add(new CurvePoint(21, -44, 1.0, 0.3, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(24, 100, 1.0, 0.4, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(24, 23, 1.0, 0.4, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(24, -44, 1.0, 0.3, 35, 180, 0.3));
 
             myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 225, 1);
 
@@ -106,14 +106,14 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
             allPoints = new ArrayList<>();
             allPoints.add(new CurvePoint(-8, 104, 1.0, 0.4, 40, 0, 0.3));
-            allPoints.add(new CurvePoint(4, 60, 1.0, 0.4, 40, 180, 0.3));
-            allPoints.add(new CurvePoint(4, 10, 1.0, 0.4, 40, 180, 0.3));
+            allPoints.add(new CurvePoint(8, 60, 1.0, 0.4, 40, 180, 0.3));
+            allPoints.add(new CurvePoint(1, 10, 1.0, 0.4, 40, 180, 0.3));
 
             myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 2);
 
             myPurePursuitRobotMovement6.upWobble();
 
-         //   myPurePursuitRobotMovement6.runShoot();
+            //   myPurePursuitRobotMovement6.runShoot();
 //
 //            allPoints = new ArrayList<>();
 //            allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 35, 0, 0.3));
@@ -163,51 +163,51 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
         } else if (purePursuitPath == 1) {
 
-        //Second Path to the Square 1
-        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 35, 0, 0.3));
-        allPoints.add(new CurvePoint(-6, 40, 1.0, 0.3, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(6, 88, 1.0, 0.3, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(27, 148, 1.0, 0.3, 35, 180, 0.3));
+            //Second Path to the Square 1
+            ArrayList<CurvePoint> allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 35, 0, 0.3));
+            allPoints.add(new CurvePoint(-8, 40, 1.0, 0.3, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(6, 88, 1.0, 0.3, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(27, 148, 1.0, 0.3, 35, 180, 0.3));
 
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
 
 //        sleep(1000);
-        myPurePursuitRobotMovement6.beginningDown();
+            myPurePursuitRobotMovement6.beginningDown();
 
-        allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(6, 88, 1.0, 0.4, 35, 0, 0.3));
-        allPoints.add(new CurvePoint(18, 60, 1.0, 0.4, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 180, 0.3));
+            allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(6, 88, 1.0, 0.4, 35, 0, 0.3));
+            allPoints.add(new CurvePoint(20, 60, 1.0, 0.4, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(23, 23, 1.0, 0.4, 35, 180, 0.3));
 //        allPoints.add(new CurvePoint(21, -44, 1.0, 0.3, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(21, -42, 1.0, 0.3, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(23, -42, 1.0, 0.3, 35, 180, 0.3));
 
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 225, 1);
-
-//        sleep(1000);
-        myPurePursuitRobotMovement6.pickupWobble();
-
-        allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 0, 0.3));
-        allPoints.add(new CurvePoint(18, 60, 1.0, 0.4, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(12, 80, 1.0, 0.4, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(0, 140, 1.0, 0.3, 35, 180, 0.3));
-
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 3);
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 225, 1);
 
 //        sleep(1000);
-        myPurePursuitRobotMovement6.setDownWobble();
+            myPurePursuitRobotMovement6.pickupWobble();
 
-        myPurePursuitRobotMovement6.revUpMotor();
+            allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 0, 0.3));
+            allPoints.add(new CurvePoint(18, 60, 1.0, 0.4, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(15, 80, 1.0, 0.4, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(0, 140, 1.0, 0.3, 35, 180, 0.3));
 
-        allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(12, 86, 0.6, 0.4, 40, 0, 0.3));
-        allPoints.add(new CurvePoint(3, 60, 0.6, 0.4, 40, 180, 0.3));
-        allPoints.add(new CurvePoint(3, 10, 0.6, 0.4, 40, 180, 0.3));
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 90, 3);
 
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 3);
+//        sleep(1000);
+            myPurePursuitRobotMovement6.setDownWobble();
 
-        myPurePursuitRobotMovement6.upWobble();
+            myPurePursuitRobotMovement6.revUpMotor();
+
+            allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(12, 86, 0.6, 0.4, 40, 0, 0.3));
+            allPoints.add(new CurvePoint(7, 60, 0.6, 0.4, 40, 180, 0.3));
+            allPoints.add(new CurvePoint(7, 10, 0.6, 0.4, 40, 180, 0.3));
+
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 3);
+
+            myPurePursuitRobotMovement6.upWobble();
 
 //        myPurePursuitRobotMovement6.runShoot();
 
@@ -243,37 +243,37 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 //        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 7, 90, 4);
         } else {
 
-        //Third Path to the Square 0
-        ArrayList<CurvePoint> allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 35, 0, 0.3));
-        allPoints.add(new CurvePoint(-18, 60, 1.0, 0.3, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(-24, 140, 1.0, 0.3, 35, 180, 0.3));
+            //Third Path to the Square 0
+            ArrayList<CurvePoint> allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(0, 0, 1.0, 0.3, 35, 0, 0.3));
+            allPoints.add(new CurvePoint(-18, 60, 1.0, 0.3, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(-24, 140, 1.0, 0.3, 35, 180, 0.3));
 
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
-
-//        sleep(1000);
-        myPurePursuitRobotMovement6.beginningDown();
-
-        allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(-18, 66, 1.0, 0.4, 25, 0, 0.3));
-        allPoints.add(new CurvePoint(18, 50, 1.0, 0.4, 25, 180, 0.3));
-        allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 25, 180, 0.3));
-        allPoints.add(new CurvePoint(21, -44, 1.0, 0.3, 25, 180, 0.3));
-
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 225, 1);
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
 
 //        sleep(1000);
-        myPurePursuitRobotMovement6.pickupWobble();
+            myPurePursuitRobotMovement6.beginningDown();
 
-        allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 0, 0.3));
-        allPoints.add(new CurvePoint(-12, 60, 1.0, 0.4, 35, 180, 0.3));
-        allPoints.add(new CurvePoint(0, 140, 1.0, 0.3, 35, 180, 0.3));
+            allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(-18, 66, 1.0, 0.4, 25, 0, 0.3));
+            allPoints.add(new CurvePoint(19, 50, 1.0, 0.4, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(23, 23, 1.0, 0.4, 25, 180, 0.3));
+            allPoints.add(new CurvePoint(23, -44, 1.0, 0.3, 25, 180, 0.3));
 
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 30, 225, 1);
 
 //        sleep(1000);
-        myPurePursuitRobotMovement6.setDownWobble();
+            myPurePursuitRobotMovement6.pickupWobble();
+
+            allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(21, 23, 1.0, 0.4, 35, 0, 0.3));
+            allPoints.add(new CurvePoint(-12, 60, 1.0, 0.4, 35, 180, 0.3));
+            allPoints.add(new CurvePoint(0, 140, 1.0, 0.3, 35, 180, 0.3));
+
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 35, 90, 3);
+
+//        sleep(1000);
+            myPurePursuitRobotMovement6.setDownWobble();
 
 //        allPoints = new ArrayList<>();
 //        allPoints.add(new CurvePoint(-12, 65, 0.6, 0.4, 25, 0, 0.3));
@@ -284,17 +284,17 @@ public class PurePursuitOpMode_Original extends LinearOpMode {
 
             myPurePursuitRobotMovement6.revUpMotor();
 
-        allPoints = new ArrayList<>();
-        allPoints.add(new CurvePoint(-12, 65, 0.5, 0.4, 10, 0, 0.3));
-        allPoints.add(new CurvePoint(-12, 50, 0.5, 0.4, 10, 180, 0.3));
-        allPoints.add(new CurvePoint(3, 60, 0.5, 0.4, 10, 180, 0.3));
-        allPoints.add(new CurvePoint(33, 80, 0.5, 0.4, 10, 180, 0.3));
+            allPoints = new ArrayList<>();
+            allPoints.add(new CurvePoint(-12, 65, 0.5, 0.4, 10, 0, 0.3));
+            allPoints.add(new CurvePoint(-12, 50, 0.5, 0.4, 10, 180, 0.3));
+            allPoints.add(new CurvePoint(3, 60, 0.5, 0.4, 10, 180, 0.3));
+            allPoints.add(new CurvePoint(33, 80, 0.5, 0.4, 10, 180, 0.3));
 
-        myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
+            myPurePursuitRobotMovement6.followCurve(allPoints, 90, 10, 90, 2);
 
-        myPurePursuitRobotMovement6.upWobble();
+            myPurePursuitRobotMovement6.upWobble();
 
-      //  myPurePursuitRobotMovement6.runShoot();
+            //  myPurePursuitRobotMovement6.runShoot();
 
 //        allPoints = new ArrayList<>();
 //        allPoints.add(new CurvePoint(6, 60, 0.6, 0.4, 35, 0, 0.3));

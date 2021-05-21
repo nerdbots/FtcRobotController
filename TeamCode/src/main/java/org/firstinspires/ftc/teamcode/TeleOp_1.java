@@ -56,7 +56,7 @@ import static org.firstinspires.ftc.teamcode.NerdVelocityFollowing_Teleop.wheelD
  * Remove a @Disabled the on the next line or two (if present) to add this opmode to the Driver Station OpMode list,
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
-//@Disabled
+@Disabled
 @TeleOp(name="Teleop_2", group="Final")
 public class TeleOp_1 extends LinearOpMode {
 

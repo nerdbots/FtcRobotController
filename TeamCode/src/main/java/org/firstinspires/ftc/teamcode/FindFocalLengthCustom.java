@@ -53,7 +53,7 @@ import java.util.List;
  * is explained below.
  */
 @TeleOp(name = "FindFocalLengthCustomModule", group = "Concept")
-//@Disabled
+@Disabled
 public class FindFocalLengthCustom extends LinearOpMode {
     private static final String TFOD_MODEL_ASSET = "BlueGoal.tflite";
     private static final String LABEL_FIRST_ELEMENT = "BlueGoal";

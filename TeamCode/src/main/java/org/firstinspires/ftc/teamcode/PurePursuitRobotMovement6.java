@@ -57,7 +57,6 @@ public class PurePursuitRobotMovement6 {
     private DcMotor backEncoder;
 
     private Servo wobbleServo;
-    private Servo indexingServo;
     private Servo kickerServo;
 
     public final double indexerHomePos = 1.0;
@@ -174,7 +173,7 @@ public class PurePursuitRobotMovement6 {
 
 //    static final double DISTANCE_THRESHOLD = 2;
 
-//    double deltaTime = 0.024;
+    //    double deltaTime = 0.024;
 //    double startTime = 0;
 //    double oldTime = 0;
 //    double loopTime = 0;
@@ -185,8 +184,8 @@ public class PurePursuitRobotMovement6 {
     double xPower = 0;
     double yPower = 0;
     double zPower = 0;
-    double zPowerStart = -0.20;
-    double zPowerIncrease = 0.075;
+    double zPowerStart = 0.20; //-0.20
+    double zPowerIncrease = -0.075; //0S.075
 
     boolean useZPID = false;
 
@@ -280,7 +279,6 @@ public class PurePursuitRobotMovement6 {
         this.backEncoder = this.hardwareMap.get(DcMotor.class, "Back");
 
         this.wobbleServo = hardwareMap.get(Servo.class, "wobble_Goal_Servo");
-        this.indexingServo = hardwareMap.get(Servo.class, "indexingServo");
         kickerServo = hardwareMap.get(Servo.class, "Kicker_Servo");
 
 
@@ -368,8 +366,7 @@ public class PurePursuitRobotMovement6 {
 
         prevDistanceToTarget = 20;
 
-//        kickerServo.setPosition(-1);
-        indexingServo.setPosition(0.65);
+        kickerServo.setPosition(0.5);
 
 //        frontDisplacementOld = 0;
 //        rearDisplacementOld = 0;
@@ -993,7 +990,7 @@ public class PurePursuitRobotMovement6 {
             robotTurnSpeed = Range.clip((parkAngleTarget - (getAngle() + 90)) / 30, -1, 1) * turnSpeed;
         }
 
-        double robotTurnSpeedFF = Range.clip((zPowerStart + zPowerIncrease), -0.5, 0);
+        double robotTurnSpeedFF = Range.clip((zPowerStart + zPowerIncrease), 0, 0.5);
         zPowerStart = robotTurnSpeedFF;
 
 //        zPower = Range.clip(relativeTurnAngle / 30, -0.3, 0.3) * robotTurnSpeed;
@@ -1256,7 +1253,7 @@ public class PurePursuitRobotMovement6 {
     public void upWobble() {
         wobbleServo.setPosition(0.75);
 
-      //  opmode.sleep(500);
+        //  opmode.sleep(500);
 
         Timer.reset();
         while(Timer.seconds() < 0.75) {
@@ -1365,12 +1362,16 @@ public class PurePursuitRobotMovement6 {
 //    }
 
 
-    public void shootThreeRings(double variableShooterVeloc) {
-        backEncoder.setPower(1);
+    public void shootThreeRings() {
+        backEncoder.setPower(-1);
+        kickerServo.setPosition(1);
 
-        sleep(1000);
+        sleep(1200);
+
+        kickerServo.setPosition(0.5);
 
         backEncoder.setPower(0);
+
 
         rightEncoder.setPower(0); //Intake off
 
@@ -1409,9 +1410,12 @@ public class PurePursuitRobotMovement6 {
 
     public void shootThreeRingsFirst() {
 
-        backEncoder.setPower(1);
+        backEncoder.setPower(-1);
+        kickerServo.setPosition(1);
 
-        sleep(1000);
+        sleep(1200);
+
+        kickerServo.setPosition(0.5);
 
         backEncoder.setPower(0);
 
@@ -1434,11 +1438,13 @@ public class PurePursuitRobotMovement6 {
 //    }
 
     public void shootOneRing() {
-        backEncoder.setPower(1);
+        backEncoder.setPower(-1);
+        kickerServo.setPosition(1);
 
         sleep(1000);
 
         backEncoder.setPower(0);
+        kickerServo.setPosition(0.5);
 
     }
 
@@ -1506,7 +1512,7 @@ public class PurePursuitRobotMovement6 {
 
         shootThreeRingsFirst(); //Shoot preloaded rings. Might have to move back a bit first
 
-       // frontEncoder.setVelocity(0);
+        // frontEncoder.setVelocity(0);
 
         if(rings == 1) { //Pick up one Ring, fire once
 
@@ -1559,7 +1565,7 @@ public class PurePursuitRobotMovement6 {
 
             frontEncoder.setVelocity(shooterSpeed);
 
-         //   shootThreeRings(-1325); //Shoot
+            //   shootThreeRings(-1325); //Shoot
 
             shootOneRing();
 
@@ -1573,20 +1579,20 @@ public class PurePursuitRobotMovement6 {
 
             setDownWobble();
         }
-         else if(rings == 4) { //Pick up rings, Fire 2-3?
-             double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
-           //  backupTime.reset();
-             rightEncoder.setPower(1); //Intake on
+        else if(rings == 4) { //Pick up rings, Fire 2-3?
+            double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
+            //  backupTime.reset();
+            rightEncoder.setPower(1); //Intake on
 //             while (backupTime.seconds() <= 2.25 && opmode.opModeIsActive()) {
-                 while(movingStuffIg[5] >= -30 && !opmode.isStopRequested()) {
-                     
-                     movingStuffIg = findDisplacementOptical();
+            while(movingStuffIg[5] >= -20 && !opmode.isStopRequested()) {
 
-                 moveFunction(backupSpeedXSlow, backupSpeedYSlow, 0);
-                 opmode.telemetry.addData("encoder value ok", movingStuffIg[5]);
-                 opmode.telemetry.update();
+                movingStuffIg = findDisplacementOptical();
 
-             } //Back up, intake ring
+                moveFunction(backupSpeedXSlow, backupSpeedYSlow, 0);
+                opmode.telemetry.addData("encoder value ok", movingStuffIg[5]);
+                opmode.telemetry.update();
+
+            } //Back up, intake ring
 
 //            backupTime.reset();
 //            while (backupTime.seconds() <= 0.3 && opmode.opModeIsActive()) { //go back to park line
@@ -1595,38 +1601,38 @@ public class PurePursuitRobotMovement6 {
 //
 //            }
 
-               //sleep(200);
-          //   rightEncoder.setPower(1);
+            //sleep(200);
+            //   rightEncoder.setPower(1);
 
-             backupTime.reset();
-           //  while (backupTime.seconds() <= 1.1265 && opmode.opModeIsActive()) { //go back to park line
+            backupTime.reset();
+            //  while (backupTime.seconds() <= 1.1265 && opmode.opModeIsActive()) { //go back to park line
             while(movingStuffIg[5] <= -5 && !opmode.isStopRequested()) {
                 movingStuffIg = findDisplacementOptical();
-                 moveFunction(forwardSpeedX, forwardSpeedY, 0);
+                moveFunction(forwardSpeedX, forwardSpeedY, 0);
 
                 opmode.telemetry.addData("encoder value forward", movingStuffIg[5]);
                 opmode.telemetry.update();
 
-             }
+            }
 
-             backupTime.reset();
-             while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
+            backupTime.reset();
+            while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
 
-                 moveFunction(0, 0, 0); //stop moving
+                moveFunction(0, 0, 0); //stop moving
 
-             }
+            }
 
-             frontLeftMotor.setPower(0);
-             rearRightMotor.setPower(0);
-             frontRightMotor.setPower(0);
-             rearLeftMotor.setPower(0);
+            frontLeftMotor.setPower(0);
+            rearRightMotor.setPower(0);
+            frontRightMotor.setPower(0);
+            rearLeftMotor.setPower(0);
 
 //             rightEncoder.setPower(0); //Intake off
 
-             frontEncoder.setVelocity(shooterSpeed);
+            frontEncoder.setVelocity(shooterSpeed);
 
-             shootThreeRings(shooterSpeed); //Shoot
-             
+            shootThreeRings(); //Shoot
+
 //             rightEncoder.setPower(-1);
 //
 //             sleep(100);
@@ -1638,25 +1644,25 @@ public class PurePursuitRobotMovement6 {
             setDownWobble();
 
         } else {
-             double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
+            double[] movingStuffIg = {0, 0, 0, 0, 0, 0};
 
 
-             while(movingStuffIg[5] <= 4 && !opmode.isStopRequested()) {
-                 movingStuffIg = findDisplacementOptical();
-                 moveFunction(forwardSpeedX0, forwardSpeedY0, 0);
+            while(movingStuffIg[5] <= 4 && !opmode.isStopRequested()) {
+                movingStuffIg = findDisplacementOptical();
+                moveFunction(forwardSpeedX0, forwardSpeedY0, 0);
 
-                 opmode.telemetry.addData("encoder value forward", movingStuffIg[5]);
-                 opmode.telemetry.update();
+                opmode.telemetry.addData("encoder value forward", movingStuffIg[5]);
+                opmode.telemetry.update();
 
-             }
+            }
 
-             backupTime.reset();
-             while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
+            backupTime.reset();
+            while (backupTime.seconds() <= 0.5 && !opmode.isStopRequested()) { //stop
 
-                 moveFunction(0, 0, 0); //stop moving
+                moveFunction(0, 0, 0); //stop moving
 
-             }
-         } //For 0 rings
+            }
+        } //For 0 rings
 
 
     }

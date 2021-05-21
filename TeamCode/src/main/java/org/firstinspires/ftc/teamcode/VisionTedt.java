@@ -40,7 +40,7 @@ import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
  * Remove a @Disabled the on the next line or two (if present) to add this opmode to the Driver Station OpMode list,
  * or add a @Disabled annotation to prevent this OpMode from being added to the Driver Station
  */
-//@Disabled
+@Disabled
 @TeleOp(name="vision test", group="Final")
 public class VisionTedt extends LinearOpMode {
     NERDTFObjectDetector nerdtfObjectDetector ;
